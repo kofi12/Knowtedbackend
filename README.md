@@ -51,4 +51,6 @@ java -jar build/libs/knowted-backend-*.jar
 
 Server runs at locally http://localhost:8080
 
-Deployment pending
+## Deployment
+
+Backend is live at https://knowtedbackend.onrender.com
