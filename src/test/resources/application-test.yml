@@ -1,0 +1,8 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration
+
+jwt:
+  secret: super-long-dummy-secret-for-tests-only-1234567890123456
+  expiration-ms: 3600000

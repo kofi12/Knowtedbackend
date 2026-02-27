@@ -17,7 +17,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtUtil jwtUtil;
 
-    @Value("${frontend.redirect-url:http://localhost:3000/dashboard}")
+    @Value("${frontend.redirect-url}")
     private String frontendRedirectUrl;
 
     public OAuth2SuccessHandler(JwtUtil jwtUtil) {
