@@ -36,10 +36,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/oauth2/**", "/login/**", "/actuator/health").permitAll()
+                        .requestMatchers("/oauth2/**", "/login/**", "/actuator/health", "/api/health").permitAll()
                         // Protected endpoints (require JWT)
                         .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll() // or .authenticated() depending on your needs
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler)
