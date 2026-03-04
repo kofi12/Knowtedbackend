@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/**", "/actuator/health", "/api/health").permitAll()
                         // Protected endpoints (require JWT)
                         .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll() // or .authenticated() depending on your needs
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler)
