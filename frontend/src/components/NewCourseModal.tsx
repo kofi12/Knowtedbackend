@@ -18,9 +18,11 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle course creation
+    // Handle course creation (e.g. call API, dispatch action, etc.)
     console.log('Creating course:', { courseName, semester, year, description });
     onClose();
+
+    // Reset form
     setCourseName('');
     setSemester('Fall');
     setYear(new Date().getFullYear());
@@ -40,7 +42,13 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
   }));
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Create New Course">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create New Course"
+      // Optional: ensure modal has proper background/foreground
+      className="bg-background text-foreground max-w-lg"
+    >
       <form onSubmit={handleSubmit} className="space-y-6">
         <Input
           id="courseName"
@@ -50,6 +58,7 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
           onChange={(e) => setCourseName(e.target.value)}
           placeholder="e.g., Introduction to Computer Science"
           required
+          // shadcn Input usually already handles bg-background/foreground via css vars
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -82,10 +91,18 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
         />
 
         <ModalFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"  // or "secondary" — outline usually looks better in modals
+            onClick={onClose}
+          >
             Cancel
           </Button>
-          <Button type="submit">
+
+          <Button
+            type="submit"
+            // Primary button usually gets bg-primary text-primary-foreground automatically
+          >
             Create Course
           </Button>
         </ModalFooter>
