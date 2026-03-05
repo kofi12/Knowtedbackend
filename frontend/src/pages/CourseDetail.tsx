@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams } from 'react-router';
-import { BookOpen, Brain, Calendar, ClipboardList } from 'lucide-react';
+import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload } from 'lucide-react';
 import { mockCourses, mockMaterials, mockAids } from '../lib/mockData';
 import { GenerateModal } from '../components/GenerateModal';
 import { FlashcardViewer } from '../components/FlashcardViewer';
@@ -19,6 +19,10 @@ export function CourseDetail() {
   const [generateType, setGenerateType] = useState<AidType>('quiz');
   const [flashcardViewerOpen, setFlashcardViewerOpen] = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFilesPreview, setSelectedFilesPreview] = useState<string[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const course = mockCourses.find(c => c.id === courseId);
   const materials = mockMaterials.filter(m => m.courseId === courseId);
   const aids = mockAids.filter(a => a.courseId === courseId);
@@ -33,6 +37,44 @@ export function CourseDetail() {
       </div>
     );
   }
+
+  const openFileDialog = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const processFiles = (files: FileList | null) => {
+    if (files && files.length > 0) {
+      const fileNames = Array.from(files).map(f => f.name);
+      setSelectedFilesPreview(fileNames);
+      console.log('Files selected (not uploaded):', fileNames);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processFiles(e.target.files);
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    processFiles(e.dataTransfer.files);
+  };
 
   const handleGenerate = (type: AidType) => {
     setGenerateType(type);
@@ -53,18 +95,49 @@ export function CourseDetail() {
       label: 'Course Materials',
       content: (
         <div className="space-y-6">
-          <UploadArea onUpload={() => console.log('Upload clicked')} />
+          <div
+            onClick={openFileDialog}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+              isDragOver
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:bg-muted/50'
+            }`}
+          >
+            <Upload className={`mx-auto h-10 w-10 mb-3 ${isDragOver ? 'text-primary' : 'text-muted-foreground'}`} />
+            <p className="font-medium">
+              {isDragOver ? 'Drop files here' : 'Click or drag & drop to select materials'}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              PDF, DOCX supported
+            </p>
+          </div>
+
+          {selectedFilesPreview.length > 0 && (
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm font-medium mb-2">Selected files (not saved yet):</p>
+              <ul className="text-sm space-y-1">
+                {selectedFilesPreview.map((name, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    {name}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-muted-foreground mt-2 italic">
+                Upload not implemented yet — files are only selected locally.
+              </p>
+            </div>
+          )}
 
           {materials.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-semibold">Uploaded Materials</h3>
               <div className="space-y-2">
                 {materials.map(material => (
-                  <MaterialItem 
-                    key={material.id} 
-                    material={material}
-                    onView={(m) => console.log('View material:', m)}
-                  />
+                  <MaterialItem key={material.id} material={material} onView={(m) => console.log('View material:', m)} />
                 ))}
               </div>
             </div>
@@ -77,49 +150,18 @@ export function CourseDetail() {
       label: 'Study Aids',
       content: (
         <div className="space-y-6">
-          {/* Generate buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <GenerateAidButton
-              icon={ClipboardList}
-              title="Generate Quiz"
-              description="Practice with custom questions"
-              color="indigo"
-              onClick={() => handleGenerate('quiz')}
-            />
-            <GenerateAidButton
-              icon={Brain}
-              title="Generate Flashcards"
-              description="Review key concepts"
-              color="teal"
-              onClick={() => handleGenerate('flashcards')}
-            />
-            <GenerateAidButton
-              icon={BookOpen}
-              title="Generate Study Guide"
-              description="Comprehensive overview"
-              color="blue"
-              onClick={() => handleGenerate('guide')}
-            />
-            <GenerateAidButton
-              icon={Calendar}
-              title="Generate Schedule"
-              description="Plan your study time"
-              color="purple"
-              onClick={() => handleGenerate('schedule')}
-            />
+            <GenerateAidButton icon={ClipboardList} title="Generate Quiz" description="Practice with custom questions" color="indigo" onClick={() => handleGenerate('quiz')} />
+            <GenerateAidButton icon={Brain} title="Generate Flashcards" description="Review key concepts" color="teal" onClick={() => handleGenerate('flashcards')} />
+            <GenerateAidButton icon={BookOpen} title="Generate Study Guide" description="Comprehensive overview" color="blue" onClick={() => handleGenerate('guide')} />
+            <GenerateAidButton icon={Calendar} title="Generate Schedule" description="Plan your study time" color="purple" onClick={() => handleGenerate('schedule')} />
           </div>
-
-          {/* Existing aids */}
           {aids.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-semibold">Your Study Aids</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {aids.map(aid => (
-                  <AidCard 
-                    key={aid.id} 
-                    aid={aid}
-                    onClick={handleAidClick}
-                  />
+                  <AidCard key={aid.id} aid={aid} onClick={handleAidClick} />
                 ))}
               </div>
             </div>
@@ -131,7 +173,6 @@ export function CourseDetail() {
 
   return (
     <div>
-      {/* Course header */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.name}</h1>
         <div className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
@@ -141,25 +182,16 @@ export function CourseDetail() {
           <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
         </div>
       </div>
-
-      {/* Tabs */}
-      <Tabs 
-        tabs={tabs} 
-        activeTab={activeTab} 
-        onTabChange={(tabId) => setActiveTab(tabId as 'materials' | 'aids')}
-      />
-
-      {/* Modals */}
-      <GenerateModal
-        isOpen={generateModalOpen}
-        onClose={() => setGenerateModalOpen(false)}
-        courseId={courseId!}
-        type={generateType}
-      />
-
-      <FlashcardViewer
-        isOpen={flashcardViewerOpen}
-        onClose={() => setFlashcardViewerOpen(false)}
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as 'materials' | 'aids')} />
+      <GenerateModal isOpen={generateModalOpen} onClose={() => setGenerateModalOpen(false)} courseId={courseId!} type={generateType} />
+      <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => setFlashcardViewerOpen(false)} />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept=".pdf,.docx,.txt"
+        multiple
+        className="hidden"
       />
     </div>
   );
