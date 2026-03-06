@@ -23,6 +23,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+	implementation 'com.google.cloud:google-cloud-storage:2.44.0'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.24.1'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client-test'

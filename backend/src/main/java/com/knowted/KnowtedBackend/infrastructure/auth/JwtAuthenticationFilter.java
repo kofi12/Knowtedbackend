@@ -1,4 +1,4 @@
-package com.knowted.KnowtedBackend;
+package com.knowted.KnowtedBackend.infrastructure.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
