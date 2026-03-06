@@ -1,4 +1,4 @@
-package com.knowted.KnowtedBackend.infrastructure.auth;
+package com.knowted.KnowtedBackend;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
