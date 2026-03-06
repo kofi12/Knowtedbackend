@@ -1,4 +1,4 @@
-package com.knowted.KnowtedBackend;
+package com.knowted.KnowtedBackend.infrastructure.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

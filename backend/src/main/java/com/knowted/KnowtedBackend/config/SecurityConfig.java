@@ -1,7 +1,7 @@
 package com.knowted.KnowtedBackend.config;
 
-import com.knowted.KnowtedBackend.JwtAuthenticationFilter;
-import com.knowted.KnowtedBackend.OAuth2SuccessHandler;
+import com.knowted.KnowtedBackend.infrastructure.auth.JwtAuthenticationFilter;
+import com.knowted.KnowtedBackend.infrastructure.auth.OAuth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

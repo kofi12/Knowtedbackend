@@ -1,4 +1,4 @@
-package com.knowted.KnowtedBackend;
+package com.knowted.KnowtedBackend.infrastructure.auth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
