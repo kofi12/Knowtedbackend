@@ -6,3 +6,6 @@ spring:
 jwt:
   secret: super-long-dummy-secret-for-tests-only-1234567890123456
   expiration-ms: 3600000
+
+frontend:
+  redirect-url: http://localhost:5173/dashboard?loggedIn=true
