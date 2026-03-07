@@ -3,21 +3,42 @@ package com.knowted.KnowtedBackend.domain.entity;
 import java.time.Instant;
 import java.util.UUID;
 import com.knowted.KnowtedBackend.domain.entity.Course;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.Id;
 
+@Entity
 public class CourseDocument {
 
     //attributes
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private Course course;
+
+    @Column(unique = true, nullable = false)
+    private UUID courseId;
+
+    @Column(unique = true, nullable = false)
     private String originalFileName;
+
+    @Column(unique = true, nullable = false)
     private String storageKey;
+
+    @Column(unique = true, nullable = false)
     private String contentType;
+
+    @Column(unique = true, nullable = false)
     private long fileSize;
+
+    @CreationTimestamp
     private Instant uploadedAt;
 
-    public CourseDocument(UUID id, Course course, String originalFileName, String storageKey, String contentType, long fileSize, Instant uploadedAt) {
+    public CourseDocument(UUID id, UUID courseId, String originalFileName, String storageKey, String contentType, long fileSize, Instant uploadedAt) {
         this.id = id;
-        this.course = course;
+        this.courseId = courseId;
         this.originalFileName = originalFileName;
         this.storageKey = storageKey;
         this.contentType = contentType;
@@ -29,10 +50,6 @@ public class CourseDocument {
 
     public UUID getId() {
         return id;
-    }
-
-    public Course getCourse() {
-        return course;
     }
 
     public String getOriginalFileName() {
