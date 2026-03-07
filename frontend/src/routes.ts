@@ -10,10 +10,7 @@ export const router = createBrowserRouter([
     path: '/login',
     Component: Auth,
   },
-  {
-    path: '/profile',
-    Component: Profile,
-  },
+
   {
     path: '/',
     Component: Layout,
@@ -25,6 +22,10 @@ export const router = createBrowserRouter([
       {
         path: 'course/:courseId',
         Component: CourseDetail,
+      },
+      {
+        path: 'profile',
+        Component: Profile,
       },
     ],
   },

@@ -173,14 +173,18 @@ export function Sidebar({
 
         {/* User / Footer */}
         <div className="border-t border-border p-3 space-y-1.5 shrink-0">
-          <div className={`flex items-center gap-3 px-3 py-2 ${isCollapsed ? 'justify-center' : ''}`}>
-            <User className="w-5 h-5 shrink-0 text-muted-foreground" />
+          <Link
+            to="/profile"
+            onClick={handleLinkClick}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-[1.02] ${isCollapsed ? 'justify-center' : ''}`}
+          >
+            <User className="w-5 h-5 shrink-0" />
             {!isCollapsed && (
               <div className="flex-1 min-w-0 transition-opacity duration-300">
                 <div className="text-sm font-medium truncate">Alex Student</div>
               </div>
             )}
-          </div>
+          </Link>
 
           <button
             onClick={toggleTheme}

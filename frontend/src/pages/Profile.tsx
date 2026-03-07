@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../components/ThemeProvider';
 
 interface User {
     id: string;
@@ -9,6 +10,7 @@ interface User {
 }
 
 export function Profile() {
+    const { theme } = useTheme();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -36,10 +38,10 @@ export function Profile() {
     if (!user) return <div className="p-4">User not found</div>;
 
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
-            <h1 className="text-2xl font-bold mb-4">{user.name}</h1>
-            <p className="text-gray-600 mb-2">{user.email}</p>
-            {user.bio && <p className="text-gray-700">{user.bio}</p>}
+        <div className="max-w-md mx-auto p-6 bg-card rounded-lg shadow border border-border">
+            <h1 className="text-2xl font-bold mb-4 text-foreground">{user.name}</h1>
+            <p className="text-muted-foreground mb-2">{user.email}</p>
+            {user.bio && <p className="text-foreground/80">{user.bio}</p>}
         </div>
     );
 }
