@@ -1,11 +1,13 @@
 package com.knowted.KnowtedBackend.domain.entity;
 
 import com.knowted.KnowtedBackend.domain.entity.CourseDocument;
+import jakarta.persistence.Entity;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
 public class Course {
 
     //Attribute list
