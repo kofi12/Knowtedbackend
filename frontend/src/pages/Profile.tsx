@@ -5,8 +5,9 @@ interface User {
     id: string;
     name: string;
     email: string;
+    Degree: string;
     avatar?: string;
-    bio?: string;
+    Plan: string;
 }
 
 export function Profile() {
@@ -15,14 +16,15 @@ export function Profile() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Replace with your API call
+        // Replace with API call
         const fetchUser = async () => {
             try {
                 setUser({
                     id: '1',
                     name: 'Test User',
                     email: 'test@example.com',
-                    bio: 'Software developer',
+                    Plan: 'Basic',
+                    Degree: 'Bachelor of Science in Computer Science',
                 });
             } catch (error) {
                 console.error('Failed to fetch user:', error);
@@ -41,7 +43,9 @@ export function Profile() {
         <div className="max-w-md mx-auto p-6 bg-card rounded-lg shadow border border-border">
             <h1 className="text-2xl font-bold mb-4 text-foreground">{user.name}</h1>
             <p className="text-muted-foreground mb-2">{user.email}</p>
-            {user.bio && <p className="text-foreground/80">{user.bio}</p>}
+            {user.Degree && <p className="text-foreground/80">{user.Degree}</p>}
+            {user.Plan && <p className="text-foreground/80">Plan: {user.Plan}</p>}
+
         </div>
     );
 }
