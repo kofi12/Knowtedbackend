@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { mockFlashcards, Flashcard } from '../lib/mockData';
+import { useTheme } from './ThemeProvider';
 
 interface FlashcardViewerProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface FlashcardViewerProps {
 }
 
 export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
+  const { theme } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [cards, setCards] = useState<Flashcard[]>(mockFlashcards);
@@ -46,7 +48,14 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-white dark:bg-card border border-border rounded-lg md:rounded-xl shadow-lg max-w-4xl w-full p-4 md:p-6 space-y-4 md:space-y-6">
+      <div 
+        className="border rounded-lg md:rounded-xl shadow-lg max-w-4xl w-full p-4 md:p-6 space-y-4 md:space-y-6"
+        style={{
+          backgroundColor: theme === 'dark' ? 'hsl(217.2 32.6% 17.5%)' : 'white',
+          color: theme === 'dark' ? 'hsl(0 0% 100%)' : 'rgb(17 24 39)',
+          borderColor: theme === 'dark' ? 'hsl(217.2 14.3% 30%)' : 'hsl(0 0% 89%)',
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -74,11 +83,13 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
         {/* Flashcard */}
         <div className="relative" style={{ perspective: '1000px' }}>
           <div
-            className={`relative bg-gradient-to-br from-background to-muted border-2 border-border rounded-xl md:rounded-2xl shadow-lg transition-all duration-500 cursor-pointer`}
+            className="relative border-2 rounded-xl md:rounded-2xl shadow-lg transition-all duration-500 cursor-pointer"
             style={{
               minHeight: '280px',
               transformStyle: 'preserve-3d',
               transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
+              backgroundColor: theme === 'dark' ? 'hsl(217.2 27.6% 22%)' : 'hsl(0 0% 96%)',
+              borderColor: theme === 'dark' ? 'hsl(217.2 14.3% 30%)' : 'hsl(0 0% 89%)',
             }}
             onClick={handleFlip}
           >
@@ -89,6 +100,7 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
               }`}
               style={{
                 backfaceVisibility: 'hidden',
+                color: theme === 'dark' ? 'hsl(0 0% 100%)' : 'rgb(17 24 39)',
               }}
             >
               <div className="text-xs font-medium text-accent mb-3 md:mb-4 uppercase tracking-wide">
@@ -97,7 +109,12 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
               <div className="text-lg md:text-2xl text-center font-medium">
                 {currentCard.question}
               </div>
-              <div className="absolute bottom-4 md:bottom-6 text-xs text-muted-foreground">
+              <div 
+                className="absolute bottom-4 md:bottom-6 text-xs"
+                style={{
+                  color: theme === 'dark' ? 'hsl(210 40% 96%)' : 'hsl(0 0% 60%)',
+                }}
+              >
                 Click to reveal answer
               </div>
             </div>
@@ -110,6 +127,7 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)',
+                color: theme === 'dark' ? 'hsl(0 0% 100%)' : 'rgb(17 24 39)',
               }}
             >
               <div className="text-xs font-medium text-primary mb-3 md:mb-4 uppercase tracking-wide">
@@ -118,7 +136,12 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
               <div className="text-base md:text-lg text-center leading-relaxed">
                 {currentCard.answer}
               </div>
-              <div className="absolute bottom-4 md:bottom-6 text-xs text-muted-foreground">
+              <div 
+                className="absolute bottom-4 md:bottom-6 text-xs"
+                style={{
+                  color: theme === 'dark' ? 'hsl(210 40% 96%)' : 'hsl(0 0% 60%)',
+                }}
+              >
                 Click to flip back
               </div>
             </div>
