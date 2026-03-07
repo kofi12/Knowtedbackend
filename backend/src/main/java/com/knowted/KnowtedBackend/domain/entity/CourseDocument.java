@@ -1,99 +1,65 @@
 package com.knowted.KnowtedBackend.domain.entity;
 
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.Instant;
 import java.util.UUID;
-import com.knowted.KnowtedBackend.domain.entity.Course;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.Id;
 
 @Entity
+@Table(name = "documents")
 public class CourseDocument {
 
-    //attributes
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Column(name = "document_id")
+    private UUID documentId;
 
-    @Column(unique = true, nullable = false)
-    private UUID courseId;
+    // matches schema: documents.user_id
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
-    @Column(unique = true, nullable = false)
-    private String originalFileName;
+    // matches schema: documents.course_id (nullable allowed)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
 
-    @Column(unique = true, nullable = false)
-    private String storageKey;
+    @Column(name = "original_filename", nullable = false)
+    private String originalFilename;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "s3_key", nullable = false)
+    private String s3Key;
+
+    @Column(name = "content_type")
     private String contentType;
 
-    @Column(unique = true, nullable = false)
-    private long fileSize;
+    @Column(name = "file_size_bytes")
+    private Long fileSizeBytes;
 
     @CreationTimestamp
+    @Column(name = "uploaded_at", updatable = false)
     private Instant uploadedAt;
 
-    public CourseDocument(UUID id, UUID courseId, String originalFileName, String storageKey, String contentType, long fileSize, Instant uploadedAt) {
-        this.id = id;
-        this.courseId = courseId;
-        this.originalFileName = originalFileName;
-        this.storageKey = storageKey;
+    protected CourseDocument() {} // required by JPA
+
+    public CourseDocument(UUID userId, Course course, String originalFilename, String s3Key,
+                          String contentType, Long fileSizeBytes) {
+        this.userId = userId;
+        this.course = course;
+        this.originalFilename = originalFilename;
+        this.s3Key = s3Key;
         this.contentType = contentType;
-        this.fileSize = fileSize;
-        this.uploadedAt = uploadedAt;
+        this.fileSizeBytes = fileSizeBytes;
     }
 
-    //access and mutation
+    public UUID getDocumentId() { return documentId; }
+    public UUID getUserId() { return userId; }
+    public Course getCourse() { return course; }
+    public String getOriginalFilename() { return originalFilename; }
+    public String getS3Key() { return s3Key; }
+    public String getContentType() { return contentType; }
+    public Long getFileSizeBytes() { return fileSizeBytes; }
+    public Instant getUploadedAt() { return uploadedAt; }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-
-    public void setOriginalFileName(String originalFileName) {
-        this.originalFileName = originalFileName;
-    }
-
-    public String getStorageKey() {
-        return storageKey;
-    }
-
-    public void setStorageKey(String storageKey) {
-        this.storageKey = storageKey;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(long fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public Instant getUploadedAt() {
-        return uploadedAt;
-    }
-
-    public void setUploadedAt(Instant uploadedAt) {
-        this.uploadedAt = uploadedAt;
-    }
-
-    //behaviour
-    public String getPreviewUrl(){
-        return "";
-    }
+    void setCourse(Course course) { this.course = course; }
 }

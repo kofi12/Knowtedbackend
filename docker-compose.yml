@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: knowted
       POSTGRES_PASSWORD: knowted
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - knowted_db:/var/lib/postgresql/data
     healthcheck:

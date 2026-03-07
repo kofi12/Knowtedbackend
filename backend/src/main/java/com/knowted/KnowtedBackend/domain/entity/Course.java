@@ -1,88 +1,73 @@
 package com.knowted.KnowtedBackend.domain.entity;
 
-import com.knowted.KnowtedBackend.domain.entity.CourseDocument;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Table(name = "courses")
 public class Course {
 
-    //Attribute list
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "course_id")
     private UUID courseId;
 
-    @Column(unique = true, nullable = false)
-    private UUID ownerId;
+    // matches schema: courses.user_id -> users.user_id
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
-    @Column(unique = true, nullable = false)
-    private String courseName;
+    @Column(name = "code")
+    private String code;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "term")
+    private String term;
 
     @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "courseId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CourseDocument> courseDocuments;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CourseDocument> courseDocuments = new ArrayList<>();
 
-    public Course(UUID courseId, UUID ownerId, String courseName, Instant createdAt, Instant updatedAt, List<CourseDocument> courseDocuments) {
-        this.courseId = courseId;
-        this.ownerId = ownerId;
-        this.courseName = courseName;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.courseDocuments = courseDocuments;
+    protected Course() {} // required by JPA
+
+    public Course(UUID userId, String code, String name, String term) {
+        this.userId = userId;
+        this.code = code;
+        this.name = name;
+        this.term = term;
     }
 
-    //access and mutation
-    public UUID getCourseId() {
-        return courseId;
+    public UUID getCourseId() { return courseId; }
+    public UUID getUserId() { return userId; }
+    public String getCode() { return code; }
+    public String getName() { return name; }
+    public String getTerm() { return term; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
+    public List<CourseDocument> getCourseDocuments() { return courseDocuments; }
+
+    public void addCourseDocument(CourseDocument doc) {
+        if (courseDocuments.size() >= 50) throw new IllegalStateException("Too many courseDocuments");
+        courseDocuments.add(doc);
+        doc.setCourse(this);
     }
 
-    public UUID getOwnerId() {
-        return ownerId;
-    }
-
-    public String getCourseName() {
-        return courseName;
-    }
-
-    public void setCourseName(String courseName) {
-        this.courseName = courseName;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public List<CourseDocument> getCourseDocuments(){
-        return courseDocuments;
-    }
-
-    //behaviour
-    public void addCourseDocument(CourseDocument courseDocument){
-        if(courseDocuments.size() >= 50) {
-            throw new IllegalStateException("Too many courseDocuments");
-        }
-        courseDocuments.add(courseDocument);
+    public void removeCourseDocument(CourseDocument doc) {
+        courseDocuments.remove(doc);
+        doc.setCourse(null);
     }
 }
