@@ -1,4 +1,20 @@
 services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: knowted
+      POSTGRES_USER: knowted
+      POSTGRES_PASSWORD: knowted
+    ports:
+      - "5432:5432"
+    volumes:
+      - knowted_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knowted -d knowted"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build:
       context: ./backend
@@ -9,6 +25,12 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/knowted
+      - SPRING_DATASOURCE_USERNAME=knowted
+      - SPRING_DATASOURCE_PASSWORD=knowted
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -20,3 +42,6 @@ services:
       - VITE_BACKEND_URL=${VITE_BACKEND_URL}
     depends_on:
       - backend
+
+volumes:
+  knowted_db:
