@@ -40,6 +40,16 @@ public class CourseDocument {
     @Column(name = "uploaded_at", updatable = false)
     private Instant uploadedAt;
 
+    @Column(name = "upload_status", nullable = false)
+    private String uploadStatus = "READY";
+
+    public String getUploadStatus() {
+        return uploadStatus;
+    }
+
+    public void setUploadStatus(String uploadStatus) {
+        this.uploadStatus = uploadStatus;
+    }
     protected CourseDocument() {} // required by JPA
 
     public CourseDocument(UUID userId, Course course, String originalFilename, String s3Key,
