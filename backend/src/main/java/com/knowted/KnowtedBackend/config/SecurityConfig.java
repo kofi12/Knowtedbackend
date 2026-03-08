@@ -40,7 +40,7 @@ public class SecurityConfig {
                         // Protected endpoints (require JWT)
                         .requestMatchers("/api/**").authenticated()
                         // ALWAYS LEAVE BELOW COMMENTED OUT UNLESS TESTING, THEN UNCOMMENT AND COMMENT LINE ABOVE.
-                        // .requestMatchers("/api/**").permitAll()
+                        //.requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
