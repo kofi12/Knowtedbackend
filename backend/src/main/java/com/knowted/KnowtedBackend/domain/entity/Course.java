@@ -41,6 +41,10 @@ public class Course {
         this.courseDocuments = courseDocuments;
     }
 
+    public Course() {
+        
+    }
+
     //access and mutation
     public UUID getCourseId() {
         return courseId;

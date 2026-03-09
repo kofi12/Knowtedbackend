@@ -2,13 +2,9 @@ package com.knowted.KnowtedBackend.domain.entity;
 
 import java.time.Instant;
 import java.util.UUID;
-import com.knowted.KnowtedBackend.domain.entity.Course;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.Id;
 
 @Entity
 public class CourseDocument {
@@ -16,7 +12,7 @@ public class CourseDocument {
     //attributes
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID documentId;
 
     @Column(unique = true, nullable = false)
     private UUID courseId;
@@ -36,8 +32,8 @@ public class CourseDocument {
     @CreationTimestamp
     private Instant uploadedAt;
 
-    public CourseDocument(UUID id, UUID courseId, String originalFileName, String storageKey, String contentType, long fileSize, Instant uploadedAt) {
-        this.id = id;
+    public CourseDocument(UUID documentId, UUID courseId, String originalFileName, String storageKey, String contentType, long fileSize, Instant uploadedAt) {
+        this.documentId = documentId;
         this.courseId = courseId;
         this.originalFileName = originalFileName;
         this.storageKey = storageKey;
@@ -46,10 +42,12 @@ public class CourseDocument {
         this.uploadedAt = uploadedAt;
     }
 
+    public CourseDocument() {}
+
     //access and mutation
 
     public UUID getId() {
-        return id;
+        return documentId;
     }
 
     public String getOriginalFileName() {
