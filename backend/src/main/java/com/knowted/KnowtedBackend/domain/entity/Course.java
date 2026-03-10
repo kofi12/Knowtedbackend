@@ -51,6 +51,7 @@ public class Course {
         this.term = term;
     }
 
+
     public UUID getCourseId() { return courseId; }
     public UUID getUserId() { return userId; }
     public String getCode() { return code; }
