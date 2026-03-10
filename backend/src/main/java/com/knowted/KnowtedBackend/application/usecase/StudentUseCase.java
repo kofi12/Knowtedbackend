@@ -1,8 +1,8 @@
 package com.knowted.KnowtedBackend.application.usecase;
 
-
 import com.knowted.KnowtedBackend.domain.entity.Student;
 import com.knowted.KnowtedBackend.domain.repository.StudentRepository;
+import com.knowted.KnowtedBackend.presentation.dto.StudentResponseDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,11 +18,23 @@ public class StudentUseCase {
         this.studentRepository = studentRepository;
     }
 
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
+    public List<StudentResponseDto> getAllStudents() {
+        return studentRepository.findAll()
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
-    public Optional<Student> getStudentById(UUID id) {
-        return studentRepository.findById(id);
+    public Optional<StudentResponseDto> getStudentById(UUID id) {
+        return studentRepository.findById(id)
+                .map(this::toResponseDto);
+    }
+
+    private StudentResponseDto toResponseDto(Student student) {
+        return new StudentResponseDto(
+                student.getStudentId(),
+                student.getEmail(),
+                student.getDisplayName()
+        );
     }
 }

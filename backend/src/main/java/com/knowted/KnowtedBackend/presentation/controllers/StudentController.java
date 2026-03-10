@@ -2,7 +2,7 @@ package com.knowted.KnowtedBackend.presentation.controllers;
 
 
 import com.knowted.KnowtedBackend.application.usecase.StudentUseCase;
-import com.knowted.KnowtedBackend.domain.entity.Student;
+import com.knowted.KnowtedBackend.presentation.dto.StudentResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,12 +23,12 @@ public class StudentController {
     }
 
     @GetMapping
-    public List<Student> getAllStudents() {
+    public List<StudentResponseDto> getAllStudents() {
         return studentUseCase.getAllStudents();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Student> getStudentById(@PathVariable UUID id) {
+    public ResponseEntity<StudentResponseDto> getStudentById(@PathVariable UUID id) {
         return studentUseCase.getStudentById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
