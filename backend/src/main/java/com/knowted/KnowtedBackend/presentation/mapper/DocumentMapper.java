@@ -17,9 +17,11 @@ public class DocumentMapper {
                 d.getUserId(),
                 courseId,
                 d.getOriginalFilename(),
-                d.getS3Key(),
+                d.getStorageKey(),
+                d.getStorageBucket(),
                 d.getContentType(),
                 d.getFileSizeBytes(),
+                d.getFileHashSha256(),
                 d.getUploadStatus(),
                 d.getUploadedAt()
         );

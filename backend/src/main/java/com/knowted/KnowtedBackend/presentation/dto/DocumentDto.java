@@ -8,9 +8,11 @@ public record DocumentDto(
         UUID userId,
         UUID courseId,
         String originalFilename,
-        String s3Key,
+        String storageKey,
+        String storageBucket,
         String contentType,
         Long fileSizeBytes,
+        String fileHashSha256,
         String uploadStatus,
         Instant uploadedAt
 ) {}

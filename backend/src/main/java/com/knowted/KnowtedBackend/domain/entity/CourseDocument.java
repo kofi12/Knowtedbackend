@@ -15,11 +15,9 @@ public class CourseDocument {
     @Column(name = "document_id")
     private UUID documentId;
 
-    // matches schema: documents.user_id
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    // matches schema: documents.course_id (nullable allowed)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
@@ -27,14 +25,23 @@ public class CourseDocument {
     @Column(name = "original_filename", nullable = false)
     private String originalFilename;
 
-    @Column(name = "s3_key", nullable = false)
-    private String s3Key;
+    // renamed + matches DB column
+    @Column(name = "storage_key", nullable = false)
+    private String storageKey;
+
+    // optional bucket (nullable)
+    @Column(name = "storage_bucket")
+    private String storageBucket;
 
     @Column(name = "content_type")
     private String contentType;
 
     @Column(name = "file_size_bytes")
     private Long fileSizeBytes;
+
+    // optional sha256 (nullable)
+    @Column(name = "file_hash_sha256")
+    private String fileHashSha256;
 
     @CreationTimestamp
     @Column(name = "uploaded_at", updatable = false)
@@ -43,33 +50,41 @@ public class CourseDocument {
     @Column(name = "upload_status", nullable = false)
     private String uploadStatus = "READY";
 
-    public String getUploadStatus() {
-        return uploadStatus;
-    }
+    protected CourseDocument() {}
 
-    public void setUploadStatus(String uploadStatus) {
-        this.uploadStatus = uploadStatus;
-    }
-    protected CourseDocument() {} // required by JPA
-
-    public CourseDocument(UUID userId, Course course, String originalFilename, String s3Key,
-                          String contentType, Long fileSizeBytes) {
+    public CourseDocument(
+            UUID userId,
+            Course course,
+            String originalFilename,
+            String storageKey,
+            String storageBucket,
+            String contentType,
+            Long fileSizeBytes,
+            String fileHashSha256
+    ) {
         this.userId = userId;
         this.course = course;
         this.originalFilename = originalFilename;
-        this.s3Key = s3Key;
+        this.storageKey = storageKey;
+        this.storageBucket = storageBucket;
         this.contentType = contentType;
         this.fileSizeBytes = fileSizeBytes;
+        this.fileHashSha256 = fileHashSha256;
     }
 
     public UUID getDocumentId() { return documentId; }
     public UUID getUserId() { return userId; }
     public Course getCourse() { return course; }
     public String getOriginalFilename() { return originalFilename; }
-    public String getS3Key() { return s3Key; }
+    public String getStorageKey() { return storageKey; }
+    public String getStorageBucket() { return storageBucket; }
     public String getContentType() { return contentType; }
     public Long getFileSizeBytes() { return fileSizeBytes; }
+    public String getFileHashSha256() { return fileHashSha256; }
     public Instant getUploadedAt() { return uploadedAt; }
+
+    public String getUploadStatus() { return uploadStatus; }
+    public void setUploadStatus(String uploadStatus) { this.uploadStatus = uploadStatus; }
 
     void setCourse(Course course) { this.course = course; }
 }
