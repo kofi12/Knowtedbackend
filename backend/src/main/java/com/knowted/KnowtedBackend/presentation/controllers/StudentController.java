@@ -28,9 +28,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StudentResponseDto> getStudentById(@PathVariable UUID id) {
-        return studentUseCase.getStudentById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public StudentResponseDto getStudentById(@PathVariable UUID id) {
+        return studentUseCase.getStudentById(id);
     }
 }
