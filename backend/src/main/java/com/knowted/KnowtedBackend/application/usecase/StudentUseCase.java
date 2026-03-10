@@ -3,38 +3,36 @@ package com.knowted.KnowtedBackend.application.usecase;
 import com.knowted.KnowtedBackend.domain.entity.Student;
 import com.knowted.KnowtedBackend.domain.repository.StudentRepository;
 import com.knowted.KnowtedBackend.presentation.dto.StudentResponseDto;
+import com.knowted.KnowtedBackend.domain.exception.StudentNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.knowted.KnowtedBackend.presentation.mapper.StudentMapper;
 
 @Service
 public class StudentUseCase {
 
     private final StudentRepository studentRepository;
+    private final StudentMapper studentMapper;
 
-    public StudentUseCase(StudentRepository studentRepository) {
+    public StudentUseCase(StudentRepository studentRepository, StudentMapper studentMapper) {
         this.studentRepository = studentRepository;
+        this.studentMapper = studentMapper;
     }
-
     public List<StudentResponseDto> getAllStudents() {
         return studentRepository.findAll()
                 .stream()
-                .map(this::toResponseDto)
+                .map(studentMapper::toResponseDto)
                 .toList();
     }
 
-    public Optional<StudentResponseDto> getStudentById(UUID id) {
-        return studentRepository.findById(id)
-                .map(this::toResponseDto);
+    public StudentResponseDto getStudentById(UUID id) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new StudentNotFoundException(id));
+
+        return studentMapper.toResponseDto(student);
     }
 
-    private StudentResponseDto toResponseDto(Student student) {
-        return new StudentResponseDto(
-                student.getStudentId(),
-                student.getEmail(),
-                student.getDisplayName()
-        );
-    }
 }
