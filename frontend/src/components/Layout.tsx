@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation, useParams } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NewCourseModal } from './NewCourseModal';
 import { GenerateModal } from './GenerateModal';
-import { mockCourses } from '../lib/mockData';
+import { CoursesProvider, useCourses } from '../lib/CoursesContext';
 
-export function Layout() {
+function LayoutContent() {
+  const { courses } = useCourses();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [newCourseModalOpen, setNewCourseModalOpen] = useState(false);
@@ -22,7 +23,7 @@ export function Layout() {
     const courseMatch = location.pathname.match(/^\/course\/(.+)$/);
     if (courseMatch) {
       const courseId = courseMatch[1];
-      const course = mockCourses.find(c => c.id === courseId);
+      const course = courses.find(c => c.id === courseId);
       return {
         title: course?.name || 'Course',
         breadcrumb: 'Courses',
@@ -64,9 +65,9 @@ export function Layout() {
         }`}
       >
         <div className="bg-card rounded-lg md:rounded-xl shadow-sm border border-border min-h-[calc(100vh-1rem)] md:min-h-[calc(100vh-2rem)]">
-          <Header 
-            {...headerProps} 
-            onGenerate={handleGenerate} 
+          <Header
+            {...headerProps}
+            onGenerate={handleGenerate}
             onNewCourse={() => setNewCourseModalOpen(true)}
             onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
           />
@@ -91,5 +92,13 @@ export function Layout() {
         />
       )}
     </div>
+  );
+}
+
+export function Layout() {
+  return (
+    <CoursesProvider>
+      <LayoutContent />
+    </CoursesProvider>
   );
 }

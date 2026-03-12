@@ -128,6 +128,22 @@ export const mockAids: Aid[] = [
   },
 ];
 
+export interface MockUser {
+  studentId: string;
+  email: string;
+  displayName: string;
+  authProvider: string;
+  createdAt: string;
+}
+
+export const mockCurrentUser: MockUser = {
+  studentId: '550e8400-e29b-41d4-a716-446655440000',
+  email: 'alex.student@example.com',
+  displayName: 'Alex Student',
+  authProvider: 'google',
+  createdAt: '2024-01-15T10:30:00Z',
+};
+
 export const mockFlashcards: Flashcard[] = [
   {
     id: 'f1',

@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import { FileText, Download, Eye, Trash2, MoreVertical } from 'lucide-react';
+import { FileText, Download, Eye, Film, Trash2 } from 'lucide-react';
 import { Material } from '../../lib/mockData';
 import { Button } from '../ui/button';
 
 interface MaterialItemProps {
   material: Material;
   onView?: (material: Material) => void;
+  onDelete?: (material: Material) => void;
 }
 
-export function MaterialItem({ material, onView }: MaterialItemProps) {
+export function MaterialItem({ material, onView, onDelete }: MaterialItemProps) {
   const materialIcons = {
     pdf: FileText,
-    video: Download,
+    video: Film,
     doc: Eye,
-    slides: Trash2,
+    slides: Download,
   };
 
   const Icon = materialIcons[material.type];
@@ -29,13 +29,25 @@ export function MaterialItem({ material, onView }: MaterialItemProps) {
           Uploaded {material.uploadedAt}
         </div>
       </div>
-      <Button 
-        variant="secondary" 
-        size="sm"
-        onClick={() => onView?.(material)}
-      >
-        View
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => onView?.(material)}
+        >
+          View
+        </Button>
+        {onDelete && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={() => onDelete(material)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
