@@ -1,30 +1,46 @@
 import React, { useState, useRef } from 'react';
-import { useParams } from 'react-router';
-import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload } from 'lucide-react';
-import { mockCourses, mockMaterials, mockAids } from '../lib/mockData';
+import { useParams, useNavigate } from 'react-router';
+import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload, Pencil, Trash2 } from 'lucide-react';
+import { mockMaterials, mockAids, Material } from '../lib/mockData';
+import { useCourses } from '../lib/CoursesContext';
 import { GenerateModal } from '../components/GenerateModal';
 import { FlashcardViewer } from '../components/FlashcardViewer';
+import { EditCourseModal } from '../components/EditCourseModal';
+import { DeleteCourseModal } from '../components/DeleteCourseModal';
+import { DeleteMaterialModal } from '../components/course/DeleteMaterialModal';
 import { Tabs } from '../components/ui/TabsWrapper';
 import { MaterialItem } from '../components/course/MaterialItem';
 import { AidCard } from '../components/course/AidCard';
 import { GenerateAidButton } from '../components/course/GenerateAidButton';
-import { UploadArea } from '../components/course/UploadArea';
+import { Button } from '../components/ui/button';
 
 type AidType = 'quiz' | 'flashcards' | 'guide' | 'schedule';
 
 export function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
+  const { courses, updateCourse, deleteCourse } = useCourses();
+
   const [activeTab, setActiveTab] = useState<'materials' | 'aids'>('materials');
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [generateType, setGenerateType] = useState<AidType>('quiz');
   const [flashcardViewerOpen, setFlashcardViewerOpen] = useState(false);
 
+  const [editCourseModalOpen, setEditCourseModalOpen] = useState(false);
+  const [deleteCourseModalOpen, setDeleteCourseModalOpen] = useState(false);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+
+  const [deleteMaterialModalOpen, setDeleteMaterialModalOpen] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<Material | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFilesPreview, setSelectedFilesPreview] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const course = mockCourses.find(c => c.id === courseId);
-  const materials = mockMaterials.filter(m => m.courseId === courseId);
+  const course = courses.find(c => c.id === courseId);
+  const [courseMaterials, setCourseMaterials] = useState(
+    mockMaterials.filter(m => m.courseId === courseId)
+  );
   const aids = mockAids.filter(a => a.courseId === courseId);
 
   if (!course) {
@@ -89,6 +105,27 @@ export function CourseDetail() {
     }
   };
 
+  const handleEditCourseSave = (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
+    updateCourse(id, updates);
+  };
+
+  const handleConfirmDeleteCourse = (id: string) => {
+    setIsDeletingCourse(true);
+    deleteCourse(id);
+    navigate('/');
+  };
+
+  const handleDeleteMaterial = (material: Material) => {
+    setMaterialToDelete(material);
+    setDeleteMaterialModalOpen(true);
+  };
+
+  const handleConfirmDeleteMaterial = (materialId: string) => {
+    setCourseMaterials(prev => prev.filter(m => m.id !== materialId));
+    setDeleteMaterialModalOpen(false);
+    setMaterialToDelete(null);
+  };
+
   const tabs = [
     {
       id: 'materials',
@@ -132,12 +169,17 @@ export function CourseDetail() {
             </div>
           )}
 
-          {materials.length > 0 && (
+          {courseMaterials.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-semibold">Uploaded Materials</h3>
               <div className="space-y-2">
-                {materials.map(material => (
-                  <MaterialItem key={material.id} material={material} onView={(m) => console.log('View material:', m)} />
+                {courseMaterials.map(material => (
+                  <MaterialItem
+                    key={material.id}
+                    material={material}
+                    onView={(m) => console.log('View material:', m)}
+                    onDelete={handleDeleteMaterial}
+                  />
                 ))}
               </div>
             </div>
@@ -174,17 +216,34 @@ export function CourseDetail() {
   return (
     <div>
       <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.name}</h1>
-        <div className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
-          <span>{course.semester} {course.year}</span>
-          <span>{course.materialsCount} materials</span>
-          <span>{course.aidsCount} study aids</span>
-          <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.name}</h1>
+            <div className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
+              <span>{course.semester} {course.year}</span>
+              <span>{course.materialsCount} materials</span>
+              <span>{course.aidsCount} study aids</span>
+              <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditCourseModalOpen(true)}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => setDeleteCourseModalOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
         </div>
       </div>
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as 'materials' | 'aids')} />
       <GenerateModal isOpen={generateModalOpen} onClose={() => setGenerateModalOpen(false)} courseId={courseId!} type={generateType} />
       <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => setFlashcardViewerOpen(false)} />
+      <EditCourseModal isOpen={editCourseModalOpen} onClose={() => setEditCourseModalOpen(false)} course={course} onSave={handleEditCourseSave} />
+      <DeleteCourseModal isOpen={deleteCourseModalOpen} onClose={() => setDeleteCourseModalOpen(false)} course={course} onConfirmDelete={handleConfirmDeleteCourse} isDeleting={isDeletingCourse} />
+      <DeleteMaterialModal isOpen={deleteMaterialModalOpen} onClose={() => { setDeleteMaterialModalOpen(false); setMaterialToDelete(null); }} material={materialToDelete} onConfirmDelete={handleConfirmDeleteMaterial} />
       <input
         type="file"
         ref={fileInputRef}

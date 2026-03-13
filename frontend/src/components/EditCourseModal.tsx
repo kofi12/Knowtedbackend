@@ -1,40 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalFooter } from './ui/Modal';
 import { Input } from './ui/InputField';
 import { Select } from './ui/SelectField';
-import { Textarea } from './ui/TextareaField';
 import { Button } from './ui/button';
-import { useCourses } from '../lib/CoursesContext';
+import { Course } from '../lib/mockData';
 
-interface NewCourseModalProps {
+interface EditCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
+  course: Course | null;
+  onSave: (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => void;
 }
 
-export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
-  const { addCourse } = useCourses();
+export function EditCourseModal({ isOpen, onClose, course, onSave }: EditCourseModalProps) {
   const [courseName, setCourseName] = useState('');
   const [semester, setSemester] = useState<'Winter' | 'Summer' | 'Fall'>('Fall');
   const [year, setYear] = useState(new Date().getFullYear());
-  const [description, setDescription] = useState('');
+  const [color, setColor] = useState('indigo');
 
-  const colors = ['indigo', 'teal', 'blue', 'purple'];
+  useEffect(() => {
+    if (course) {
+      setCourseName(course.name);
+      setSemester(course.semester);
+      setYear(course.year);
+      setColor(course.color);
+    }
+  }, [course]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addCourse({
-      name: courseName,
-      semester,
-      year,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    });
+    if (!course) return;
+    onSave(course.id, { name: courseName, semester, year, color });
     onClose();
-
-    // Reset form
-    setCourseName('');
-    setSemester('Fall');
-    setYear(new Date().getFullYear());
-    setDescription('');
   };
 
   const semesterOptions = [
@@ -49,38 +46,37 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
     label: (currentYear + i).toString(),
   }));
 
+  const colorOptions = [
+    { value: 'indigo', label: 'Indigo' },
+    { value: 'teal', label: 'Teal' },
+    { value: 'blue', label: 'Blue' },
+    { value: 'purple', label: 'Purple' },
+  ];
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Create New Course"
-      // Optional: ensure modal has proper background/foreground
-      className="bg-background text-foreground max-w-lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Course">
       <form onSubmit={handleSubmit} className="space-y-6">
         <Input
-          id="courseName"
+          id="editCourseName"
           label="Course Name"
           type="text"
           value={courseName}
           onChange={(e) => setCourseName(e.target.value)}
           placeholder="e.g., Introduction to Computer Science"
           required
-          // shadcn Input usually already handles bg-background/foreground via css vars
         />
 
         <div className="grid grid-cols-2 gap-4">
           <Select
-            id="semester"
+            id="editSemester"
             label="Semester"
             value={semester}
             onChange={(e) => setSemester(e.target.value as 'Winter' | 'Summer' | 'Fall')}
             options={semesterOptions}
             required
           />
-
           <Select
-            id="year"
+            id="editYear"
             label="Year"
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
@@ -89,29 +85,20 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
           />
         </div>
 
-        <Textarea
-          id="description"
-          label="Description (Optional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a brief description..."
-          rows={4}
+        <Select
+          id="editColor"
+          label="Color Theme"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+          options={colorOptions}
         />
 
         <ModalFooter>
-          <Button
-            type="button"
-            variant="outline"  // or "secondary" — outline usually looks better in modals
-            onClick={onClose}
-          >
+          <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-
-          <Button
-            type="submit"
-            // Primary button usually gets bg-primary text-primary-foreground automatically
-          >
-            Create Course
+          <Button type="submit">
+            Save Changes
           </Button>
         </ModalFooter>
       </form>

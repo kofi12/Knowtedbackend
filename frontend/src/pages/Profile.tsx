@@ -1,51 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '../components/ThemeProvider';
+import { useState, useEffect } from 'react';
+import { Mail, Shield, Calendar } from 'lucide-react';
+import { Card, CardHeader, CardContent } from '../components/ui/card';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
+import { fetchCurrentUser, UserProfile } from '../lib/api';
+import { mockCurrentUser } from '../lib/mockData';
 
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    Degree: string;
-    avatar?: string;
-    Plan: string;
+interface ProfileUser extends UserProfile {
+  authProvider?: string;
+  createdAt?: string;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
 
 export function Profile() {
-    const { theme } = useTheme();
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<ProfileUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // Replace with API call
-        const fetchUser = async () => {
-            try {
-                setUser({
-                    id: '1',
-                    name: 'Test User',
-                    email: 'test@example.com',
-                    Plan: 'Basic',
-                    Degree: 'Bachelor of Science in Computer Science',
-                });
-            } catch (error) {
-                console.error('Failed to fetch user:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const apiUser = await fetchCurrentUser();
+        setUser(apiUser);
+      } catch {
+        setUser({
+          studentId: mockCurrentUser.studentId,
+          email: mockCurrentUser.email,
+          displayName: mockCurrentUser.displayName,
+          authProvider: mockCurrentUser.authProvider,
+          createdAt: mockCurrentUser.createdAt,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadUser();
+  }, []);
 
-        fetchUser();
-    }, []);
-
-    if (loading) return <div className="p-4">Loading...</div>;
-    if (!user) return <div className="p-4">User not found</div>;
-
+  if (loading) {
     return (
-        <div className="max-w-md mx-auto p-6 bg-card rounded-lg shadow border border-border">
-            <h1 className="text-2xl font-bold mb-4 text-foreground">{user.name}</h1>
-            <p className="text-muted-foreground mb-2">{user.email}</p>
-            {user.Degree && <p className="text-foreground/80">{user.Degree}</p>}
-            {user.Plan && <p className="text-foreground/80">Plan: {user.Plan}</p>}
-
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-muted-foreground">Loading profile...</p>
+      </div>
     );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-muted-foreground">Could not load profile.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">Profile</h1>
+
+      <Card>
+        <CardHeader className="flex flex-col items-center gap-4 pb-2">
+          <Avatar className="h-20 w-20 text-2xl">
+            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+          </Avatar>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold">{user.displayName}</h2>
+            {user.authProvider && (
+              <Badge variant="secondary" className="mt-2 capitalize">
+                {user.authProvider}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+
+        <Separator />
+
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <Mail className="h-5 w-5 text-muted-foreground shrink-0" />
+            <div>
+              <p className="text-sm text-muted-foreground">Email</p>
+              <p className="font-medium">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Shield className="h-5 w-5 text-muted-foreground shrink-0" />
+            <div>
+              <p className="text-sm text-muted-foreground">Student ID</p>
+              <p className="font-medium font-mono text-sm">{user.studentId}</p>
+            </div>
+          </div>
+
+          {user.createdAt && (
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div>
+                <p className="text-sm text-muted-foreground">Member Since</p>
+                <p className="font-medium">{formatDate(user.createdAt)}</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

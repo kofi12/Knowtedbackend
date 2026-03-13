@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Home, Book, Plus, ChevronDown, ChevronRight, Moon, Sun, LogOut, User, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import { useTheme } from './ThemeProvider';
-import { mockCourses } from '../lib/mockData';
+import { useCourses } from '../lib/CoursesContext';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -21,6 +21,7 @@ export function Sidebar({
 }: SidebarProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { courses } = useCourses();
   const [coursesExpanded, setCoursesExpanded] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
@@ -130,7 +131,7 @@ export function Sidebar({
               `}
             >
               <div className="ml-8 mt-2 space-y-1 pb-2">
-                {mockCourses.map((course, i) => (
+                {courses.map((course, i) => (
                   <Link
                     key={course.id}
                     to={`/course/${course.id}`}
