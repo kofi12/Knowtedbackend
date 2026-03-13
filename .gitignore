@@ -41,4 +41,3 @@ out/
 .DS_Store
 
 .env
-application.properties
