@@ -20,4 +20,5 @@ public class JpaStudentRepository implements StudentRepository {
     public boolean existsByEmail(String email) {
         return false;
     }
+
 }
