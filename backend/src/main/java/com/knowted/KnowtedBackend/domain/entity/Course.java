@@ -61,6 +61,10 @@ public class Course {
     public Instant getUpdatedAt() { return updatedAt; }
     public List<CourseDocument> getCourseDocuments() { return courseDocuments; }
 
+    public void setCode(String code) { this.code = code; }
+    public void setName(String name) { this.name = name; }
+    public void setTerm(String term) { this.term = term; }
+
     public void addCourseDocument(CourseDocument doc) {
         if (courseDocuments.size() >= 50) throw new IllegalStateException("Too many courseDocuments");
         courseDocuments.add(doc);

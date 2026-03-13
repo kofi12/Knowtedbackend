@@ -11,11 +11,19 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Service;
 
+@Service
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+  name = "storage.provider",
+  havingValue = "gcs"
+)
 public class GCSStorageService implements StorageService {
 
     private final Storage googleStorage;
     private final String bucketName;
+    private static final org.slf4j.Logger log =
+        org.slf4j.LoggerFactory.getLogger(GCSStorageService.class);
 
     public GCSStorageService( @Value("${gcp.bucket.name}")String bucketName) {
         this.googleStorage = StorageOptions.getDefaultInstance().getService();
@@ -24,9 +32,9 @@ public class GCSStorageService implements StorageService {
 
     @Override
     public String upload(InputStream contentStream, String fileName, String contentType) {
-
+        String safeName = fileName == null ? "file" : fileName.replaceAll("[\\\\/]+", "_");
         String storageKey = "documents/" + Instant.now().toEpochMilli() + "_" + UUID.randomUUID().toString().substring(0, 6) +
-                fileName;
+                "_" + safeName;
 
         BlobId blobId = BlobId.of(bucketName, storageKey);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(contentType).build();
@@ -55,11 +63,15 @@ public class GCSStorageService implements StorageService {
     public void delete(String storageKey) {
 
         BlobId blobId = BlobId.of(bucketName, storageKey);
-        googleStorage.delete(blobId);
+        boolean deleted = googleStorage.delete(blobId);
+        if (!deleted) {
+            log.debug("GCS object not found: {}/{}", bucketName, storageKey);
+        }
     }
 
     @Override
     public boolean exists(String storageKey) {
-        return false;
+        Blob blob = googleStorage.get(BlobId.of(bucketName, storageKey));
+        return blob != null;
     }
 }
