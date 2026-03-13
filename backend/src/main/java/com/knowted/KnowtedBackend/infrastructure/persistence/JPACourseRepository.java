@@ -8,4 +8,7 @@ import java.util.UUID;
 
 public interface JPACourseRepository extends JpaRepository<Course, UUID> {
     List<Course> findByUserId(UUID userId);
+    long countByUserId(UUID userId);
+    // verify course belongs to user
+    boolean existsByCourseIdAndUserId(UUID courseId, UUID userId);
 }
