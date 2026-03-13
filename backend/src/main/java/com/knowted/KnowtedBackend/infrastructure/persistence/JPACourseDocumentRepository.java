@@ -18,4 +18,7 @@ public interface JPACourseDocumentRepository extends JpaRepository<CourseDocumen
 
     // optional: count per course (useful for course page stats)
     long countByCourse_CourseId(UUID courseId);
+
+    //needed for course deletion
+    List<CourseDocument> findByCourse_CourseId(UUID courseId);
 }
