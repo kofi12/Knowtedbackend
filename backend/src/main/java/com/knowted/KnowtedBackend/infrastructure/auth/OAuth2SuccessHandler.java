@@ -1,15 +1,21 @@
 package com.knowted.KnowtedBackend.infrastructure.auth;
 
+import com.knowted.KnowtedBackend.domain.entity.Student;
+import com.knowted.KnowtedBackend.domain.repository.StudentRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 
 @Component
@@ -19,6 +25,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Value("${frontend.redirect-url}")
     private String frontendRedirectUrl;
+    private StudentRepository studentRepository;
 
     public OAuth2SuccessHandler(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -30,16 +37,42 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                         Authentication authentication) throws IOException, ServletException {
 
         if (authentication instanceof OAuth2AuthenticationToken token) {
-            var attributes = token.getPrincipal().getAttributes();
+            OAuth2User principal = token.getPrincipal();
+            Map<String, Object> attributes = principal.getAttributes();
 
-            // Use email (or sub) as subject
-            String email = (String) attributes.get("email");
-            if (email == null) {
-                email = (String) attributes.get("sub"); // fallback
+            // 1. Extract Google's stable identifier (sub)
+            String googleSub = (String) attributes.get("sub");
+            if (googleSub == null) {
+                // This should never happen with Google OpenID Connect
+                throw new IllegalStateException("Google did not provide 'sub' claim");
             }
 
+            String email = (String) attributes.get("email");
+            String displayName = (String) attributes.getOrDefault("name", "");
+
+            // 2. Use the repository to look for existing user
+            Optional<Student> existingStudent = studentRepository
+                    .findByProviderUserIdAndAuthProvider(googleSub, "google");
+
+            Student student;
+
+            if (existingStudent.isPresent()) {
+                // Returning user – login
+                student = existingStudent.get();
+
+                // Optional: sync any changed profile info
+                if (!Objects.equals(student.getEmail(), email)) {
+                    student.setEmail(email);
+                    studentRepository.save(student); // or only if you want to update
+                }
+
+            } else {
+                // First time – signup (automatic account creation)
+                student = Student.createFromGoogle(googleSub, email, displayName);
+                student = studentRepository.save(student); // UUID is generated here
+            }
             // Generate minimal JWT
-            String jwt = jwtUtil.generateToken(email);
+            String jwt = jwtUtil.generateToken(student.getStudentId().toString());
 
             // Redirect to frontend with token in query param
             String targetUrl = frontendRedirectUrl + "?token=" + jwt;

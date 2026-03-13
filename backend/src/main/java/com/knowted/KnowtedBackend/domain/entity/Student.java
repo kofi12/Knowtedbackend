@@ -28,7 +28,7 @@ public class Student {
     @Column(name = "auth_provider", nullable = false)
     private String authProvider;
 
-    @Column(name = "provider_user_id")
+    @Column(name = "provider_user_id", nullable = false, unique = true)
     private String providerUserId;
 
     @CreationTimestamp
@@ -58,6 +58,10 @@ public class Student {
         return email;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -80,5 +84,14 @@ public class Student {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public static Student createFromGoogle(String googleSub, String email, String displayName) {
+        Student student = new Student();
+        student.email = email;
+        student.displayName = displayName;
+        student.authProvider = "google";
+        student.providerUserId = googleSub;
+        return student;
     }
 }
