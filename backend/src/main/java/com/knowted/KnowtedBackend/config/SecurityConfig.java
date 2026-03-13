@@ -60,6 +60,8 @@ public class SecurityConfig {
                                 "/api/health"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
+                        // ALWAYS LEAVE BELOW COMMENTED OUT UNLESS TESTING, THEN UNCOMMENT AND COMMENT LINE ABOVE.
+                        //.requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
