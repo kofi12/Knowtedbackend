@@ -110,4 +110,11 @@ public class CourseDocument {
         // fileHashSha256 remains null – set separately if computed
         return doc;
     }
+
+    public CourseDocument orElseThrow(Object o) {
+        if (o instanceof CourseDocument) {
+            return (CourseDocument) o;
+        }
+        return null;
+    }
 }
