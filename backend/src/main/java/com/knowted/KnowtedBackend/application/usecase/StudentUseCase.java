@@ -30,7 +30,7 @@ public class StudentUseCase {
 
     public StudentResponseDto getStudentById(UUID id) {
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new StudentNotFoundException(id));
+                .orElseThrow(() -> new StudentNotFoundException("Student not found" + id));
 
         return studentMapper.toResponseDto(student);
     }
