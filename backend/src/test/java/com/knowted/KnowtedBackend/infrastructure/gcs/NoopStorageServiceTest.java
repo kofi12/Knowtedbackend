@@ -30,7 +30,7 @@ class NoopStorageServiceTest {
 
     @Test
     void getPresignedDownloadUrl_throwsUnsupportedOperationException() {
-        assertThatThrownBy(() -> noopStorageService.getPresignedDownloadUrl("key", Duration.ofMinutes(5)))
+        assertThatThrownBy(() -> noopStorageService.getPresignedUrl("key", Duration.ofMinutes(5)))
                 .isInstanceOf(UnsupportedOperationException.class)
                 .hasMessageContaining("NOOP");
     }

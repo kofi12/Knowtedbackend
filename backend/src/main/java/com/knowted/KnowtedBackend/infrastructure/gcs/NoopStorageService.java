@@ -18,7 +18,7 @@ public class NoopStorageService implements StorageService {
     }
 
     @Override
-    public String getPresignedDownloadUrl(String storageKey, Duration expiration) {
+    public String getPresignedUrl(String storageKey, Duration expiration) {
         throw new UnsupportedOperationException("Storage provider is NOOP in this environment");
     }
 
