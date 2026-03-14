@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "courses")
+@SuppressWarnings("unused")
 public class Course {
 
     @Id

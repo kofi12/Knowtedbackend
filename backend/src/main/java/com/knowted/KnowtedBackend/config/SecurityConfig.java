@@ -25,6 +25,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity  // optional - enables @PreAuthorize etc.
+@SuppressWarnings("unused")
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

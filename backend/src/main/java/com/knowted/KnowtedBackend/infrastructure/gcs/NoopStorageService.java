@@ -9,6 +9,7 @@ import java.time.Duration;
 
 @Service
 @ConditionalOnProperty(name = "storage.provider", havingValue = "noop", matchIfMissing = true)
+@SuppressWarnings("unused")
 public class NoopStorageService implements StorageService {
 
     @Override

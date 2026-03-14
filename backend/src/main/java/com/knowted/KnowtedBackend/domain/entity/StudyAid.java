@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "study_aids")
+@SuppressWarnings("unused")
 public class StudyAid {
 
     @Id

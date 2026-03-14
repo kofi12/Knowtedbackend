@@ -5,6 +5,7 @@ import com.knowted.KnowtedBackend.presentation.dto.StudyAidDto;
 
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class StudyAidMapper {
 
     private StudyAidMapper() {}

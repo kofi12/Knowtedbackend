@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("unused")
 public class CourseUseCase {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CourseUseCase.class);

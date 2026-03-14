@@ -3,6 +3,7 @@ package com.knowted.KnowtedBackend.presentation.mapper;
 import com.knowted.KnowtedBackend.domain.entity.Course;
 import com.knowted.KnowtedBackend.presentation.dto.CourseDto;
 
+@SuppressWarnings("unused")
 public class CourseMapper {
 
     private CourseMapper() {}

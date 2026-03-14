@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressWarnings("unused")
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
   name = "storage.provider",
   havingValue = "gcs"

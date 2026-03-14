@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
+@SuppressWarnings("unused")
 public class DashboardController {
 
     private final DashboardUseCase dashboardUseCase;

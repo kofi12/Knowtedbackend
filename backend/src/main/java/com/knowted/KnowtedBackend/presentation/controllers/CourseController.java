@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@SuppressWarnings("unused")
 public class CourseController {
 
     private final CourseUseCase courseUseCase;

@@ -5,6 +5,7 @@ import com.knowted.KnowtedBackend.presentation.dto.StudentResponseDto;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unused")
 public class StudentMapper {
 
     public StudentResponseDto toResponseDto(Student student) {

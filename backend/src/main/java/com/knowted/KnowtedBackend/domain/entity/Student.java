@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@SuppressWarnings("unused")
 public class Student {
 
     @Id

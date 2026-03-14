@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-
 @Component
+@SuppressWarnings("unused")
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;

@@ -8,6 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "documents")
+@SuppressWarnings("unused")
 public class CourseDocument {
 
     @Id

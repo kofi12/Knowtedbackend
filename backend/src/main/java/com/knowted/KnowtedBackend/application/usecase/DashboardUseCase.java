@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("unused")
 public class DashboardUseCase {
 
     private final JPACourseRepository courseRepository;

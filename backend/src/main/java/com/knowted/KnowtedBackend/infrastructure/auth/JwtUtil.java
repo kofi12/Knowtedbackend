@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
+@SuppressWarnings("unused")
 public class JwtUtil {
 
     private final SecretKey key;

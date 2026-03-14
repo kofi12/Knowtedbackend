@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/students")
+@SuppressWarnings("unused")
 public class StudentController {
 
     private final StudentUseCase studentUseCase;
