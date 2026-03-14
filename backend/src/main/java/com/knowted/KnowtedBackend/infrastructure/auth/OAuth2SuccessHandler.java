@@ -72,7 +72,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 student = studentRepository.save(student); // UUID is generated here
             }
             // Generate minimal JWT
-            String jwt = jwtUtil.generateToken(student.getStudentId().toString());
+            String jwt = jwtUtil.generateToken(
+                    student.getStudentId(),
+                    student.getEmail(),
+                    student.getDisplayName()
+            );
 
             // Redirect to frontend with token in query param
             String targetUrl = frontendRedirectUrl + "?token=" + jwt;
