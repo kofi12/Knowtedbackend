@@ -50,7 +50,7 @@ public class GCSStorageService implements StorageService {
     }
 
     @Override
-    public String getPresignedDownloadUrl(String storageKey, Duration expiration) {
+    public String getPresignedUrl(String storageKey, Duration expiration) {
 
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, storageKey).build();
 

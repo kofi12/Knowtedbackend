@@ -30,4 +30,12 @@ public record UploadCourseDocumentDto(
     public boolean  isEmpty() {
         return file.isEmpty();
     }
+
+    public UUID getCourseId() {
+        return courseId;
+    }
+
+    public UUID getStudentId() {
+        return studentId;
+    }
 }

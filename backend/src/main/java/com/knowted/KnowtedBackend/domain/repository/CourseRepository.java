@@ -10,7 +10,7 @@ public interface CourseRepository {
 
     public List<CourseDocument> findAll();
     public Course findById(UUID id);
-    public Course create(Course course);
+    public Course save(Course course);
     public void update(UUID courseId, Course updatedCourse);
     public void deleteById(UUID id);
 }
