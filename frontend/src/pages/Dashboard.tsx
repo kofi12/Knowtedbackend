@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { useCourses } from '../lib/CoursesContext';
+import { fetchDashboardSummary, DashboardSummaryDto, getUserIdFromToken } from '../lib/api';
 
 export function Dashboard() {
-  const { courses } = useCourses();
+  const { courses, loading } = useCourses();
+  const [summary, setSummary] = useState<DashboardSummaryDto | null>(null);
 
-  if (courses.length === 0) {
+  useEffect(() => {
+    const userId = getUserIdFromToken();
+    if (!userId) return;
+
+    fetchDashboardSummary(userId)
+      .then(setSummary)
+      .catch(() => {
+        // API not available — will fall back to counting from courses
+      });
+  }, []);
+
+  // Use API summary if available, otherwise compute from courses
+  const activeCourses = summary?.activeCourses ?? courses.length;
+  const studyMaterials = summary?.studyMaterials ?? courses.reduce((sum, c) => sum + c.materialsCount, 0);
+  const generatedAids = summary?.generatedAids ?? courses.reduce((sum, c) => sum + c.aidsCount, 0);
+
+  if (!loading && courses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
         <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
@@ -31,19 +49,19 @@ export function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <div className="p-4 md:p-6 bg-card border border-border rounded-lg md:rounded-xl">
           <div className="text-2xl md:text-3xl font-bold mb-1">
-            {courses.length}
+            {activeCourses}
           </div>
           <div className="text-xs md:text-sm text-muted-foreground">Active Courses</div>
         </div>
         <div className="p-4 md:p-6 bg-card border border-border rounded-lg md:rounded-xl">
           <div className="text-2xl md:text-3xl font-bold mb-1">
-            {courses.reduce((sum, c) => sum + c.materialsCount, 0)}
+            {studyMaterials}
           </div>
           <div className="text-xs md:text-sm text-muted-foreground">Study Materials</div>
         </div>
         <div className="p-4 md:p-6 bg-card border border-border rounded-lg md:rounded-xl">
           <div className="text-2xl md:text-3xl font-bold mb-1">
-            {courses.reduce((sum, c) => sum + c.aidsCount, 0)}
+            {generatedAids}
           </div>
           <div className="text-xs md:text-sm text-muted-foreground">Generated Aids</div>
         </div>
