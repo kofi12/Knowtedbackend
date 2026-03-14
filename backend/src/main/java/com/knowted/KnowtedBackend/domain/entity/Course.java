@@ -76,4 +76,11 @@ public class Course {
         courseDocuments.remove(doc);
         doc.setCourse(null);
     }
+
+    public Course orElseThrow(Object o) {
+        if (o instanceof Course) {
+            return (Course) o;
+        }
+        return null;
+    }
 }

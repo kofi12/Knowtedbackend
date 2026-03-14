@@ -88,4 +88,26 @@ public class CourseDocument {
     public void setUploadStatus(String uploadStatus) { this.uploadStatus = uploadStatus; }
 
     void setCourse(Course course) { this.course = course; }
+
+    public static CourseDocument create(
+            Course course,
+            UUID uploadedBy,
+            String storageKey,
+            String storageBucket,
+            String originalFilename,
+            String contentType,
+            long fileSizeBytes
+    ) {
+        CourseDocument doc = new CourseDocument();
+        doc.course = course;
+        doc.userId = uploadedBy;
+        doc.uploadedAt = Instant.now();
+        doc.storageKey = storageKey;
+        doc.storageBucket = storageBucket;
+        doc.originalFilename = originalFilename;
+        doc.contentType = contentType;
+        doc.fileSizeBytes = fileSizeBytes;
+        // fileHashSha256 remains null – set separately if computed
+        return doc;
+    }
 }
