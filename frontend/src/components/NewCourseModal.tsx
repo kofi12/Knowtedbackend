@@ -20,9 +20,9 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
 
   const colors = ['indigo', 'teal', 'blue', 'purple'];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addCourse({
+    await addCourse({
       name: courseName,
       semester,
       year,

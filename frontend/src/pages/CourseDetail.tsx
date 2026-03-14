@@ -105,13 +105,13 @@ export function CourseDetail() {
     }
   };
 
-  const handleEditCourseSave = (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
-    updateCourse(id, updates);
+  const handleEditCourseSave = async (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
+    await updateCourse(id, updates);
   };
 
-  const handleConfirmDeleteCourse = (id: string) => {
+  const handleConfirmDeleteCourse = async (id: string) => {
     setIsDeletingCourse(true);
-    deleteCourse(id);
+    await deleteCourse(id);
     navigate('/');
   };
 
