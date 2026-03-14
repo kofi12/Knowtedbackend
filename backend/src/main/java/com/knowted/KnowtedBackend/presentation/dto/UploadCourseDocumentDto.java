@@ -1,11 +1,16 @@
 package com.knowted.KnowtedBackend.presentation.dto;
 
+import com.google.auto.value.AutoValue;
+import kotlin.BuilderInference;
+import lombok.Builder;
+import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+@Builder
 public record UploadCourseDocumentDto(
         UUID courseId,
         MultipartFile file,
