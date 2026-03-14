@@ -41,6 +41,16 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'com.h2database:h2'
+	// Springdoc OpenAPI (for @Operation, @ApiResponse, @ApiResponses)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'  // latest stable as of 2025
+
+	// Jakarta Validation (for @Valid)
+	implementation 'jakarta.validation:jakarta.validation-api:3.1.0'
+	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'  // reference implementation
+
+	// Lombok (for @RequiredArgsConstructor)
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 	
 }
 
