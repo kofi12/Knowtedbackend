@@ -88,4 +88,6 @@ public class CourseDocument {
     public void setUploadStatus(String uploadStatus) { this.uploadStatus = uploadStatus; }
 
     void setCourse(Course course) { this.course = course; }
+
+
 }
