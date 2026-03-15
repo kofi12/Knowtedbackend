@@ -57,7 +57,7 @@ function dtoToCourse(dto: CourseDto, index: number): Course {
     name: dto.name,
     semester,
     year,
-    materialsCount: 0,
+    materialsCount: dto.materialCount ?? 0,
     aidsCount: 0,
     lastUpdated: formatRelativeTime(dto.updatedAt),
     color: COLORS[index % COLORS.length],

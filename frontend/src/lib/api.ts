@@ -12,6 +12,7 @@ export interface CourseDto {
   term: string;
   createdAt: string;
   updatedAt: string;
+  materialCount: number;
 }
 
 export interface DashboardSummaryDto {

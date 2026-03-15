@@ -84,8 +84,9 @@ export function CourseDetail() {
     try {
       const documents = await fetchCourseDocuments(courseId);
       setCourseMaterials(documents.map(mapDocumentToMaterial));
-    } catch {
-      setMaterialError('Failed to load course documents.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load course documents.';
+      setMaterialError(message);
       setCourseMaterials([]);
     } finally {
       setLoadingMaterials(false);

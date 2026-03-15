@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { useCourses } from '../lib/CoursesContext';
-import { fetchDashboardSummary, DashboardSummaryDto, getUserIdFromToken } from '../lib/api';
+import { DocumentDto, fetchDashboardRecent, fetchDashboardSummary, DashboardSummaryDto, getUserIdFromToken } from '../lib/api';
 
 export function Dashboard() {
   const { courses, loading } = useCourses();
   const [summary, setSummary] = useState<DashboardSummaryDto | null>(null);
+  const [recentDocuments, setRecentDocuments] = useState<DocumentDto[]>([]);
 
   useEffect(() => {
     const userId = getUserIdFromToken();
@@ -16,6 +17,12 @@ export function Dashboard() {
       .then(setSummary)
       .catch(() => {
         // API not available — will fall back to counting from courses
+      });
+
+    fetchDashboardRecent(userId, undefined, 5)
+      .then((data) => setRecentDocuments(data.recentDocuments ?? []))
+      .catch(() => {
+        setRecentDocuments([]);
       });
   }, []);
 
@@ -74,6 +81,25 @@ export function Dashboard() {
           {courses.map(course => (
             <CourseCard key={course.id} course={course} />
           ))}
+        </div>
+      </div>
+
+      {/* Recent documents */}
+      <div className="mt-8 md:mt-10">
+        <h2 className="text-lg md:text-xl font-semibold mb-4">Recent Documents</h2>
+        <div className="bg-card border border-border rounded-lg md:rounded-xl divide-y divide-border">
+          {recentDocuments.length === 0 ? (
+            <div className="p-4 md:p-6 text-sm text-muted-foreground">No documents uploaded yet.</div>
+          ) : (
+            recentDocuments.map((doc) => (
+              <div key={doc.documentId} className="p-4 md:p-5">
+                <div className="font-medium truncate">{doc.originalFilename}</div>
+                <div className="text-xs md:text-sm text-muted-foreground mt-1">
+                  {new Date(doc.uploadedAt).toLocaleString()}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
