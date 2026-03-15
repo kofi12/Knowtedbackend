@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { GraduationCap, Mail } from "lucide-react";
 
 export function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<"initial" | "login" | "signup">("initial");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [emailError, setEmailError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
+
+  const authNoticeStyle =
+    authNotice === "You have been logged out."
+      ? "border-emerald-200/70 bg-emerald-50/80 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200"
+      : "border-amber-200/70 bg-amber-50/80 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200";
 
   // Check for redirect back from backend after Google login
   useEffect(() => {
@@ -28,6 +34,17 @@ export function Auth() {
       navigate("/", { replace: true });
     }
   }, [location.search, navigate]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const reason = params.get("reason");
+
+    if (reason === "auth-required") {
+      setAuthNotice("Please sign in to continue.");
+    } else if (reason === "logged-out") {
+      setAuthNotice("You have been logged out.");
+    }
+  }, [location.search]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -135,7 +152,9 @@ export function Auth() {
               </form>
 
               {authNotice && (
-                <p className="text-sm text-destructive mt-3">{authNotice}</p>
+                <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${authNoticeStyle}`}>
+                  {authNotice}
+                </div>
               )}
 
               <div className="relative my-6">
@@ -284,7 +303,9 @@ export function Auth() {
               </form>
 
               {authNotice && (
-                <p className="text-sm text-destructive mt-3">{authNotice}</p>
+                <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${authNoticeStyle}`}>
+                  {authNotice}
+                </div>
               )}
 
               <p className="text-sm text-center text-muted-foreground mt-4">
@@ -359,7 +380,9 @@ export function Auth() {
               </form>
 
               {authNotice && (
-                <p className="text-sm text-destructive mt-3">{authNotice}</p>
+                <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${authNoticeStyle}`}>
+                  {authNotice}
+                </div>
               )}
 
               <p className="text-sm text-center text-muted-foreground mt-4">

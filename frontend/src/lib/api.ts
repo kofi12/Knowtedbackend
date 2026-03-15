@@ -69,6 +69,10 @@ export interface DownloadUrlResponse {
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
+export function hasStoredToken(): boolean {
+  return !!localStorage.getItem('token');
+}
+
 /** Decode JWT payload to extract userId (subject claim) */
 export function getUserIdFromToken(): string | null {
   const token = localStorage.getItem('token');
@@ -125,6 +129,14 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 export async function fetchCurrentUser(): Promise<UserProfile> {
   return apiFetch<UserProfile>('/api/me');
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await apiFetch<void>('/api/auth/logout', { method: 'POST' });
+  } finally {
+    localStorage.removeItem('token');
+  }
 }
 
 // ── Courses ──
