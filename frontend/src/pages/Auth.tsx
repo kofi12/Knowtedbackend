@@ -62,12 +62,18 @@ export function Auth() {
   };
 
   const handleGoogleLogin = () => {
-    // Backend URL — use env var in production
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+    // Backend URL — ensure absolute URL in production.
+    // If env is set as "foo.up.railway.app" (without scheme), browsers treat it as a relative path.
+    const configuredBackendUrl = (import.meta.env.VITE_BACKEND_URL || "").trim();
+    const backendUrl = configuredBackendUrl
+      ? /^(https?:)?\/\//i.test(configuredBackendUrl)
+        ? configuredBackendUrl
+        : `https://${configuredBackendUrl}`
+      : "http://localhost:8080";
+    const normalizedBackendUrl = backendUrl.replace(/\/+$/, "");
 
     // Trigger Google SSO flow
-    window.location.href = `${backendUrl}/oauth2/authorization/google`;
+    window.location.href = `${normalizedBackendUrl}/oauth2/authorization/google`;
   };
 
   return (
