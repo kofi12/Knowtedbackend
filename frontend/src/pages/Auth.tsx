@@ -13,11 +13,6 @@ export function Auth() {
   const [emailError, setEmailError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
 
-  const authNoticeStyle =
-    authNotice === "You have been logged out."
-      ? "border-emerald-200/70 bg-emerald-50/80 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200"
-      : "border-amber-200/70 bg-amber-50/80 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200";
-
   // Check for redirect back from backend after Google login
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -152,9 +147,7 @@ export function Auth() {
               </form>
 
               {authNotice && (
-                <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${authNoticeStyle}`}>
-                  {authNotice}
-                </div>
+                <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
               <div className="relative my-6">
@@ -303,9 +296,7 @@ export function Auth() {
               </form>
 
               {authNotice && (
-                <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${authNoticeStyle}`}>
-                  {authNotice}
-                </div>
+                <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
               <p className="text-sm text-center text-muted-foreground mt-4">
@@ -380,9 +371,7 @@ export function Auth() {
               </form>
 
               {authNotice && (
-                <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${authNoticeStyle}`}>
-                  {authNotice}
-                </div>
+                <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
               <p className="text-sm text-center text-muted-foreground mt-4">
