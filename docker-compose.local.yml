@@ -1,0 +1,12 @@
+services:
+  backend:
+    environment:
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-noop}
+      - GCP_BUCKET_NAME=${GCP_BUCKET_NAME:-knowted-local-bucket}
+      - GCS_CREDENTIALS=${GCS_CREDENTIALS:-/tmp/noop-gcs.json}
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+      - FRONTEND_REDIRECT_URL=${FRONTEND_REDIRECT_URL:-http://localhost:3000}
+
+  frontend:
+    environment:
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL:-http://localhost:8080}
