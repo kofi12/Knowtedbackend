@@ -123,8 +123,9 @@ export function CourseDetail() {
       await Promise.all(selectedFiles.map((file) => uploadCourseDocument(courseId, file)));
       await loadCourseMaterials();
       setSelectedFilesPreview([]);
-    } catch {
-      setMaterialError('Failed to upload one or more files.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upload one or more files.';
+      setMaterialError(message);
     } finally {
       setIsUploading(false);
     }
@@ -198,8 +199,9 @@ export function CourseDetail() {
     try {
       const url = await getDocumentPresignedUrl(material.id);
       window.open(url.presignedUrl, '_blank', 'noopener,noreferrer');
-    } catch {
-      setMaterialError('Failed to open document.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to open document.';
+      setMaterialError(message);
     }
   };
 
@@ -210,8 +212,9 @@ export function CourseDetail() {
       setCourseMaterials(prev => prev.filter(m => m.id !== materialId));
       setDeleteMaterialModalOpen(false);
       setMaterialToDelete(null);
-    } catch {
-      setMaterialError('Failed to delete document.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete document.';
+      setMaterialError(message);
     } finally {
       setIsDeletingMaterial(false);
     }
