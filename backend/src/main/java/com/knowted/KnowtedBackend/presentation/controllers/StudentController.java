@@ -9,12 +9,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -33,25 +36,20 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Student not found")
     })
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StudentResponseDto> getCurrentStudent(
             @AuthenticationPrincipal Jwt jwt) {
 
-        // 1. Extract student ID from JWT subject
-        String subject = jwt.getSubject();
         UUID studentId;
         try {
-            studentId = UUID.fromString(subject);
+            studentId = UUID.fromString(jwt.getSubject());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid JWT subject format");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid JWT subject");
         }
 
-        // 2. Load student from database
         Student student = studentRepository.findById(studentId)
-                .orElseThrow();
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
 
-        // 3. Map to DTO
-        StudentResponseDto dto = studentMapper.toResponseDto(student);
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(studentMapper.toResponseDto(student));
     }
 }

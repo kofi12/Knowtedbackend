@@ -76,6 +76,9 @@ public class JwtUtil {
      * @return true if valid, false otherwise
      */
     public boolean validateToken(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
         try {
             Jwts.parser()
                     .verifyWith(key)

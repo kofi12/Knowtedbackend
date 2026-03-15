@@ -21,14 +21,24 @@ import org.springframework.stereotype.Service;
 )
 public class GCSStorageService implements StorageService {
 
-    private final Storage googleStorage;
+    private volatile Storage googleStorage;
     private final String bucketName;
     private static final org.slf4j.Logger log =
         org.slf4j.LoggerFactory.getLogger(GCSStorageService.class);
 
     public GCSStorageService( @Value("${gcp.bucket.name}")String bucketName) {
-        this.googleStorage = StorageOptions.getDefaultInstance().getService();
         this.bucketName = bucketName;
+    }
+
+    private Storage getGoogleStorage() {
+        if (googleStorage == null) {
+            synchronized (this) {
+                if (googleStorage == null) {
+                    googleStorage = StorageOptions.getDefaultInstance().getService();
+                }
+            }
+        }
+        return googleStorage;
     }
 
     @Override
@@ -41,7 +51,7 @@ public class GCSStorageService implements StorageService {
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(contentType).build();
 
         try {
-            googleStorage.createFrom(blobInfo, contentStream);
+            getGoogleStorage().createFrom(blobInfo, contentStream);
         } catch(IOException e) {
             throw new RuntimeException("Failed to upload content to GCS", e);
         }
@@ -54,7 +64,7 @@ public class GCSStorageService implements StorageService {
 
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, storageKey).build();
 
-        URL signedUrl = googleStorage.signUrl(blobInfo, expiration.getSeconds(), TimeUnit.SECONDS,
+        URL signedUrl = getGoogleStorage().signUrl(blobInfo, expiration.getSeconds(), TimeUnit.SECONDS,
                 Storage.SignUrlOption.httpMethod(HttpMethod.GET), Storage.SignUrlOption.withV4Signature());
 
         return signedUrl.toString();
@@ -64,7 +74,7 @@ public class GCSStorageService implements StorageService {
     public void delete(String storageKey) {
 
         BlobId blobId = BlobId.of(bucketName, storageKey);
-        boolean deleted = googleStorage.delete(blobId);
+        boolean deleted = getGoogleStorage().delete(blobId);
         if (!deleted) {
             log.debug("GCS object not found: {}/{}", bucketName, storageKey);
         }
@@ -72,7 +82,7 @@ public class GCSStorageService implements StorageService {
 
     @Override
     public boolean exists(String storageKey) {
-        Blob blob = googleStorage.get(BlobId.of(bucketName, storageKey));
+        Blob blob = getGoogleStorage().get(BlobId.of(bucketName, storageKey));
         return blob != null;
     }
 }

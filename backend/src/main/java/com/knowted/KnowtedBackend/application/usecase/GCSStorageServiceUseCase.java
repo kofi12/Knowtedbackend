@@ -5,11 +5,12 @@ import com.knowted.KnowtedBackend.domain.entity.CourseDocument;
 import com.knowted.KnowtedBackend.domain.exception.CourseNotFoundException;
 import com.knowted.KnowtedBackend.domain.exception.InvalidFileTypeException;
 import com.knowted.KnowtedBackend.domain.exception.StorageOperationFailedException;
-import com.knowted.KnowtedBackend.domain.repository.CourseDocumentRepository;
-import com.knowted.KnowtedBackend.domain.repository.CourseRepository;
 import com.knowted.KnowtedBackend.domain.services.StorageService;
+import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseDocumentRepository;
+import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseRepository;
 import com.knowted.KnowtedBackend.presentation.dto.CourseDocumentResponseDto;
 import com.knowted.KnowtedBackend.presentation.dto.UploadCourseDocumentDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +23,13 @@ import java.util.Set;
  * Placeholder for GCS document upload. Implement when domain APIs (Course.isMember, CourseDocument.create, etc.) are ready.
  */
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("unused")
 public class GCSStorageServiceUseCase {
 
-    private StorageService storageService;
-    private CourseDocumentRepository courseDocumentRepository;
-    private CourseRepository courseRepository;
+    private final StorageService storageService;
+    private final JPACourseDocumentRepository courseDocumentRepository;
+    private final JPACourseRepository courseRepository;
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "application/pdf",
@@ -44,7 +46,7 @@ public class GCSStorageServiceUseCase {
     public CourseDocumentResponseDto execute(UploadCourseDocumentDto cmd) {
 
         Course course = courseRepository.findById(cmd.getCourseId())
-                .orElseThrow(new CourseNotFoundException("Course not found: " + cmd.getCourseId()));
+                .orElseThrow(() -> new CourseNotFoundException("Course not found: " + cmd.getCourseId()));
 
         //validate file isEmpty
         if(cmd.isEmpty()){

@@ -21,8 +21,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleStudentNotFound_returns404WithBody() {
-        UUID id = UUID.randomUUID();
-        StudentNotFoundException ex = new StudentNotFoundException(id);
+        String message = "message";
+        StudentNotFoundException ex = new StudentNotFoundException(message);
 
         ResponseEntity<Map<String, Object>> response = handler.handleStudentNotFound(ex);
 
@@ -30,7 +30,7 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().get("status")).isEqualTo(404);
         assertThat(response.getBody().get("error")).isEqualTo("Not Found");
-        assertThat(response.getBody().get("message")).asString().contains(id.toString());
+        assertThat(response.getBody().get("message")).asString().contains(message.toString());
         assertThat(response.getBody()).containsKey("timestamp");
     }
 }
