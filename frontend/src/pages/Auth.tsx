@@ -88,7 +88,7 @@ export function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-indigo-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-foreground">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-indigo-50 via-white to-teal-50 text-slate-900">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -100,20 +100,20 @@ export function Auth() {
               Know-ted
             </h1>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-500">
             Your smart study companion
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-lg p-6 md:p-8">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-6 md:p-8">
           {mode === "initial" && (
             <>
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-semibold mb-2">
                   Log in or sign up
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Get a Know-ted account and optimize your study journey
                 </p>
               </div>
@@ -124,7 +124,7 @@ export function Auth() {
                     Email address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
                       type="email"
                       value={email}
@@ -133,7 +133,7 @@ export function Auth() {
                         setEmailError("");
                       }}
                       placeholder="you@example.com"
-                      className="w-full pl-10 pr-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                   {emailError && (
@@ -150,14 +150,14 @@ export function Auth() {
                 <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
-              <p className="text-xs text-center text-muted-foreground my-6">
+              <p className="text-xs text-center text-slate-500 my-6">
                 Or log in with
               </p>
 
               <div className="flex justify-center gap-3">
                 <button
                   onClick={() => handleGoogleLogin()}
-                  className="w-12 h-12 flex items-center justify-center border border-border rounded-lg hover:bg-muted transition-colors"
+                  className="w-12 h-12 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                   title="Continue with Google"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@ export function Auth() {
 
                 <button
                   onClick={() => handleSocialLogin("Apple")}
-                  className="w-12 h-12 flex items-center justify-center border border-border rounded-lg hover:bg-muted transition-colors"
+                  className="w-12 h-12 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                   title="Continue with Apple"
                 >
                   <svg
@@ -196,7 +196,7 @@ export function Auth() {
 
                 <button
                   onClick={() => handleSocialLogin("Facebook")}
-                  className="w-12 h-12 flex items-center justify-center border border-border rounded-lg hover:bg-muted transition-colors"
+                  className="w-12 h-12 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                   title="Continue with Facebook"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
@@ -205,14 +205,14 @@ export function Auth() {
                 </button>
               </div>
 
-              <p className="text-xs text-center text-muted-foreground mt-6">
+              <p className="text-xs text-center text-slate-500 mt-6">
                 By signing up or logging in, you acknowledge and agree to
                 Know-ted's{" "}
-                <a href="#" className="text-primary hover:underline">
+                <a href="#" className="text-indigo-600 hover:underline">
                   Terms of Use
                 </a>{" "}
                 and{" "}
-                <a href="#" className="text-primary hover:underline">
+                <a href="#" className="text-indigo-600 hover:underline">
                   Privacy Policy
                 </a>
               </p>
@@ -224,14 +224,14 @@ export function Auth() {
               <div className="mb-6">
                 <button
                   onClick={() => setMode("initial")}
-                  className="text-sm text-primary hover:underline mb-4"
+                  className="text-sm text-indigo-600 hover:underline mb-4"
                 >
                   ← Back
                 </button>
                 <h2 className="text-2xl font-semibold mb-2">
                   Create your account
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Welcome to Know-ted! Let's get you started.
                 </p>
               </div>
@@ -247,7 +247,7 @@ export function Auth() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
@@ -261,7 +261,7 @@ export function Auth() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
@@ -276,9 +276,9 @@ export function Auth() {
                     placeholder="••••••••"
                     required
                     minLength={8}
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Must be at least 8 characters
                   </p>
                 </div>
@@ -292,11 +292,11 @@ export function Auth() {
                 <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
-              <p className="text-sm text-center text-muted-foreground mt-4">
+              <p className="text-sm text-center text-slate-500 mt-4">
                 Already have an account?{" "}
                 <button
                   onClick={() => setMode("login")}
-                  className="text-primary hover:underline font-medium"
+                  className="text-indigo-600 hover:underline font-medium"
                 >
                   Log in
                 </button>
@@ -309,12 +309,12 @@ export function Auth() {
               <div className="mb-6">
                 <button
                   onClick={() => setMode("initial")}
-                  className="text-sm text-primary hover:underline mb-4"
+                  className="text-sm text-indigo-600 hover:underline mb-4"
                 >
                   ← Back
                 </button>
                 <h2 className="text-2xl font-semibold mb-2">Welcome back</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Log in to continue your study journey
                 </p>
               </div>
@@ -330,7 +330,7 @@ export function Auth() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
@@ -344,16 +344,16 @@ export function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-input" />
-                    <span className="text-muted-foreground">Remember me</span>
+                    <input type="checkbox" className="rounded border-slate-300" />
+                    <span className="text-slate-500">Remember me</span>
                   </label>
-                  <a href="#" className="text-primary hover:underline">
+                  <a href="#" className="text-indigo-600 hover:underline">
                     Forgot password?
                   </a>
                 </div>
@@ -367,11 +367,11 @@ export function Auth() {
                 <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
-              <p className="text-sm text-center text-muted-foreground mt-4">
+              <p className="text-sm text-center text-slate-500 mt-4">
                 Don't have an account?{" "}
                 <button
                   onClick={() => setMode("signup")}
-                  className="text-primary hover:underline font-medium"
+                  className="text-indigo-600 hover:underline font-medium"
                 >
                   Sign up
                 </button>
