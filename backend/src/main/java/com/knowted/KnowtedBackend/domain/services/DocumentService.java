@@ -2,8 +2,8 @@ package com.knowted.KnowtedBackend.domain.services;
 
 import com.knowted.KnowtedBackend.domain.entity.Document;
 import com.knowted.KnowtedBackend.domain.entity.User;
-import com.knowted.KnowtedBackend.domain.repository.DocumentRepository;
-import com.knowted.KnowtedBackend.domain.repository.UserRepository;
+import com.knowted.KnowtedBackend.domain.services.DocumentRepository;
+import com.knowted.KnowtedBackend.domain.services.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
