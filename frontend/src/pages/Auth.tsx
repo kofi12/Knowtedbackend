@@ -88,7 +88,7 @@ export function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-indigo-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-indigo-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-foreground">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -106,7 +106,7 @@ export function Auth() {
         </div>
 
         {/* Auth Card */}
-        <div className="bg-card border border-border rounded-xl shadow-lg p-6 md:p-8">
+        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-lg p-6 md:p-8">
           {mode === "initial" && (
             <>
               <div className="text-center mb-6">
@@ -133,7 +133,7 @@ export function Auth() {
                         setEmailError("");
                       }}
                       placeholder="you@example.com"
-                      className="w-full pl-10 pr-4 py-2.5 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
                   {emailError && (
@@ -150,16 +150,9 @@ export function Auth() {
                 <p className="text-sm text-destructive mt-3">{authNotice}</p>
               )}
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-card text-muted-foreground">
-                    Or log in with
-                  </span>
-                </div>
-              </div>
+              <p className="text-xs text-center text-muted-foreground my-6">
+                Or log in with
+              </p>
 
               <div className="flex justify-center gap-3">
                 <button
@@ -215,11 +208,11 @@ export function Auth() {
               <p className="text-xs text-center text-muted-foreground mt-6">
                 By signing up or logging in, you acknowledge and agree to
                 Know-ted's{" "}
-                <a href="#" className="text-indigo-600 hover:underline">
+                <a href="#" className="text-primary hover:underline">
                   Terms of Use
                 </a>{" "}
                 and{" "}
-                <a href="#" className="text-indigo-600 hover:underline">
+                <a href="#" className="text-primary hover:underline">
                   Privacy Policy
                 </a>
               </p>
@@ -231,7 +224,7 @@ export function Auth() {
               <div className="mb-6">
                 <button
                   onClick={() => setMode("initial")}
-                  className="text-sm text-indigo-600 hover:underline mb-4"
+                  className="text-sm text-primary hover:underline mb-4"
                 >
                   ← Back
                 </button>
@@ -254,7 +247,7 @@ export function Auth() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
@@ -268,7 +261,7 @@ export function Auth() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
@@ -283,7 +276,7 @@ export function Auth() {
                     placeholder="••••••••"
                     required
                     minLength={8}
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Must be at least 8 characters
@@ -303,7 +296,7 @@ export function Auth() {
                 Already have an account?{" "}
                 <button
                   onClick={() => setMode("login")}
-                  className="text-indigo-600 hover:underline font-medium"
+                  className="text-primary hover:underline font-medium"
                 >
                   Log in
                 </button>
@@ -316,7 +309,7 @@ export function Auth() {
               <div className="mb-6">
                 <button
                   onClick={() => setMode("initial")}
-                  className="text-sm text-indigo-600 hover:underline mb-4"
+                  className="text-sm text-primary hover:underline mb-4"
                 >
                   ← Back
                 </button>
@@ -337,7 +330,7 @@ export function Auth() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
@@ -351,7 +344,7 @@ export function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
@@ -360,7 +353,7 @@ export function Auth() {
                     <input type="checkbox" className="rounded border-input" />
                     <span className="text-muted-foreground">Remember me</span>
                   </label>
-                  <a href="#" className="text-indigo-600 hover:underline">
+                  <a href="#" className="text-primary hover:underline">
                     Forgot password?
                   </a>
                 </div>
@@ -378,7 +371,7 @@ export function Auth() {
                 Don't have an account?{" "}
                 <button
                   onClick={() => setMode("signup")}
-                  className="text-indigo-600 hover:underline font-medium"
+                  className="text-primary hover:underline font-medium"
                 >
                   Sign up
                 </button>
