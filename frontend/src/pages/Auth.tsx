@@ -24,7 +24,7 @@ export function Auth() {
         // Optional: set axios/fetch default header
         // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       }
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [location.search, navigate]);
 
@@ -46,13 +46,13 @@ export function Auth() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock or real login
-    navigate("/dashboard");
+    navigate("/");
   };
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock or real signup
-    navigate("/dashboard");
+    navigate("/");
   };
 
   const handleSocialLogin = (provider: string) => {
