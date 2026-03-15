@@ -51,6 +51,21 @@ export interface DashboardRecentDto {
   recentStudyAids: StudyAidDto[];
 }
 
+export interface CourseDocumentResponseDto {
+  documentId: string;
+  originalFilename: string;
+  contentType: string;
+  fileSizeBytes: number;
+  uploadedAt: string;
+  presignedUrl: string | null;
+  courseId: string;
+}
+
+export interface DownloadUrlResponse {
+  presignedUrl: string;
+  expiresAt: string;
+}
+
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
 /** Decode JWT payload to extract userId (subject claim) */
@@ -58,7 +73,12 @@ export function getUserIdFromToken(): string | null {
   const token = localStorage.getItem('token');
   if (!token) return null;
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payloadPart = token.split('.')[1];
+    if (!payloadPart) return null;
+    // JWT payload uses base64url; normalize before decoding.
+    const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
+    const payload = JSON.parse(atob(padded));
     return payload.sub || null;
   } catch {
     return null;
@@ -74,7 +94,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   if (options?.body && !(options.body instanceof FormData)) {
     (headers as Record<string, string>)['Content-Type'] = 'application/json';
   }
-  const response = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  const response = await fetch(`${BASE_URL}${path}`, { ...options, headers, credentials: 'include' });
   if (!response.ok) {
     throw new Error(`API error: ${response.status} ${response.statusText}`);
   }
@@ -135,4 +155,28 @@ export async function fetchDashboardRecent(userId: string, courseId?: string, li
 
 export async function deleteDocument(documentId: string): Promise<void> {
   return apiFetch<void>(`/api/documents/${documentId}`, { method: 'DELETE' });
+}
+
+export async function fetchCourseDocuments(courseId: string, page = 0, size = 20): Promise<CourseDocumentResponseDto[]> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+  return apiFetch<CourseDocumentResponseDto[]>(`/api/courses/${courseId}/documents?${params.toString()}`);
+}
+
+export async function uploadCourseDocument(courseId: string, file: File): Promise<CourseDocumentResponseDto> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiFetch<CourseDocumentResponseDto>(`/api/courses/${courseId}/documents`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function getDocumentPresignedUrl(documentId: string, expirySeconds = 3600): Promise<DownloadUrlResponse> {
+  const params = new URLSearchParams({
+    expirySeconds: String(expirySeconds),
+  });
+  return apiFetch<DownloadUrlResponse>(`/api/documents/${documentId}/presigned-url?${params.toString()}`);
 }

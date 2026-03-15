@@ -3,13 +3,14 @@ import { Sparkles, FileText, ListChecks, Lightbulb } from 'lucide-react';
 import { Modal, ModalFooter } from './ui/Modal';
 import { Input } from './ui/InputField';
 import { Button } from './ui/button';
-import { mockMaterials } from '../lib/mockData';
+import { Material, mockMaterials } from '../lib/mockData';
 
 interface GenerateModalProps {
   isOpen: boolean;
   onClose: () => void;
   courseId: string;
   type: 'quiz' | 'flashcards' | 'guide' | 'schedule';
+  materials?: Material[];
 }
 
 const typeLabels = {
@@ -19,12 +20,12 @@ const typeLabels = {
   schedule: 'Study Schedule',
 };
 
-export function GenerateModal({ isOpen, onClose, courseId, type }: GenerateModalProps) {
+export function GenerateModal({ isOpen, onClose, courseId, type, materials }: GenerateModalProps) {
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState('20');
 
-  const courseMaterials = mockMaterials.filter(m => m.courseId === courseId);
+  const courseMaterials = materials ?? mockMaterials.filter(m => m.courseId === courseId);
 
   const handleToggleMaterial = (materialId: string) => {
     setSelectedMaterials(prev =>

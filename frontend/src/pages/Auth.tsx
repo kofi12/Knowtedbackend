@@ -10,6 +10,7 @@ export function Auth() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [authNotice, setAuthNotice] = useState("");
 
   // Check for redirect back from backend after Google login
   useEffect(() => {
@@ -45,20 +46,18 @@ export function Auth() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock or real login
-    navigate("/");
+    setAuthNotice("Email/password login is not wired yet. Use Google Sign in.");
   };
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock or real signup
-    navigate("/");
+    setAuthNotice("Signup is not wired yet. Use Google Sign in.");
   };
 
   const handleSocialLogin = (provider: string) => {
     // Mock social login
     console.log(`Login with ${provider}`);
-    navigate("/");
+    setAuthNotice(`${provider} login is not wired yet. Use Google Sign in.`);
   };
 
   const handleGoogleLogin = () => {
@@ -134,6 +133,10 @@ export function Auth() {
                   Next step
                 </Button>
               </form>
+
+              {authNotice && (
+                <p className="text-sm text-destructive mt-3">{authNotice}</p>
+              )}
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
@@ -280,6 +283,10 @@ export function Auth() {
                 </Button>
               </form>
 
+              {authNotice && (
+                <p className="text-sm text-destructive mt-3">{authNotice}</p>
+              )}
+
               <p className="text-sm text-center text-muted-foreground mt-4">
                 Already have an account?{" "}
                 <button
@@ -350,6 +357,10 @@ export function Auth() {
                   Log in
                 </Button>
               </form>
+
+              {authNotice && (
+                <p className="text-sm text-destructive mt-3">{authNotice}</p>
+              )}
 
               <p className="text-sm text-center text-muted-foreground mt-4">
                 Don't have an account?{" "}
