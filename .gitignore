@@ -30,7 +30,7 @@ out/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/dist/
+frontend/dist/
 /nbdist/
 /.nb-gradle/
 

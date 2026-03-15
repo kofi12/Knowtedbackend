@@ -10,5 +10,6 @@ public record CourseDto(
         String name,
         String term,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        long materialCount
 ) {}

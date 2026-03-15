@@ -1,15 +1,14 @@
 package com.knowted.KnowtedBackend.application.usecase;
 
 import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseDocumentRepository;
+import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseRepository;
 import com.knowted.KnowtedBackend.presentation.dto.CourseDocumentResponseDto;
 import com.knowted.KnowtedBackend.presentation.dto.DownloadUrlResponse;
 import com.knowted.KnowtedBackend.domain.entity.Course;
 import com.knowted.KnowtedBackend.domain.entity.CourseDocument;
 import com.knowted.KnowtedBackend.domain.exception.CourseNotFoundException;
-import com.knowted.KnowtedBackend.domain.exception.DocumentNotFoundException;
-import com.knowted.KnowtedBackend.domain.repository.CourseDocumentRepository;
-import com.knowted.KnowtedBackend.domain.repository.CourseRepository;
 import com.knowted.KnowtedBackend.domain.services.StorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,11 +27,12 @@ import java.util.stream.Collectors;
  * - Delete document (metadata + GCS object)
  */
 @Service
+@RequiredArgsConstructor
 public class CourseDocumentUseCase {
 
-    private JPACourseDocumentRepository documentRepository;
-    private CourseRepository courseRepository;
-    private StorageService storageService;
+    private final JPACourseDocumentRepository documentRepository;
+    private final JPACourseRepository courseRepository;
+    private final StorageService storageService;
 
     private static final Duration DEFAULT_URL_EXPIRY = Duration.ofHours(1);
 
@@ -46,7 +46,7 @@ public class CourseDocumentUseCase {
             UUID requesterId) {
 
         Course course = courseRepository.findById(courseId)
-                .orElseThrow( new CourseNotFoundException("Course not found: " + courseId));
+                .orElseThrow(() -> new CourseNotFoundException("Course not found: " + courseId));
 
         return documentRepository.findByCourse_CourseIdOrderByUploadedAtDesc(courseId, pageable)
                 .stream()

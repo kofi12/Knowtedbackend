@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Home, Book, Plus, ChevronDown, ChevronRight, Moon, Sun, LogOut, User, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useTheme } from './ThemeProvider';
 import { useCourses } from '../lib/CoursesContext';
+import { logout } from '../lib/api';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -20,6 +21,7 @@ export function Sidebar({
   onMobileMenuClose,
 }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { courses } = useCourses();
   const [coursesExpanded, setCoursesExpanded] = useState(true);
@@ -28,6 +30,15 @@ export function Sidebar({
 
   const handleLinkClick = () => {
     if (onMobileMenuClose) onMobileMenuClose();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      if (onMobileMenuClose) onMobileMenuClose();
+      navigate('/login?reason=logged-out', { replace: true });
+    }
   };
 
   return (
@@ -203,18 +214,16 @@ export function Sidebar({
             {!isCollapsed && <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>}
           </button>
 
-          {/* Logout - more visible: filled red, white text, stronger hover */}
+          {/* Logout */}
           <button
+            onClick={handleLogout}
             className={`
-              group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all duration-200
-              bg-red-600 hover:bg-red-700 active:bg-red-800
-              text-white
-              shadow-sm hover:shadow-md
-              hover:scale-[1.03] active:scale-[0.98]
+              w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+              text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-[1.02]
               ${isCollapsed ? 'justify-center' : ''}
             `}
           >
-            <LogOut className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+            <LogOut className="w-5 h-5 shrink-0" />
             {!isCollapsed && <span>Logout</span>}
           </button>
         </div>

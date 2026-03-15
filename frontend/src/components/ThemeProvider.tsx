@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useLayoutEffect, useState, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -10,35 +10,28 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light';
     const stored = localStorage.getItem('know-ted-theme');
     if (stored === 'light' || stored === 'dark') {
-      setTheme(stored);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
+      return stored;
     }
-  }, []);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+  });
 
-  useEffect(() => {
-    if (!mounted) return;
-    
+  useLayoutEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
-    
-    // Also set class for Tailwind dark mode
+
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    
+
     localStorage.setItem('know-ted-theme', theme);
-  }, [theme, mounted]);
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');

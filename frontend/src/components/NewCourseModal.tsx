@@ -17,24 +17,31 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
   const [semester, setSemester] = useState<'Winter' | 'Summer' | 'Fall'>('Fall');
   const [year, setYear] = useState(new Date().getFullYear());
   const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
 
   const colors = ['indigo', 'teal', 'blue', 'purple'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await addCourse({
-      name: courseName,
-      semester,
-      year,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    });
-    onClose();
+    setError('');
+    try {
+      await addCourse({
+        name: courseName,
+        semester,
+        year,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+      onClose();
 
-    // Reset form
-    setCourseName('');
-    setSemester('Fall');
-    setYear(new Date().getFullYear());
-    setDescription('');
+      // Reset form
+      setCourseName('');
+      setSemester('Fall');
+      setYear(new Date().getFullYear());
+      setDescription('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create course';
+      setError(message);
+    }
   };
 
   const semesterOptions = [
@@ -97,6 +104,10 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
           placeholder="Add a brief description..."
           rows={4}
         />
+
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
 
         <ModalFooter>
           <Button

@@ -11,6 +11,7 @@ import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseRepository
 import com.knowted.KnowtedBackend.presentation.dto.CourseDocumentResponseDto;
 import com.knowted.KnowtedBackend.presentation.dto.UploadCourseDocumentDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,8 @@ public class GCSStorageServiceUseCase {
     private final StorageService storageService;
     private final JPACourseDocumentRepository courseDocumentRepository;
     private final JPACourseRepository courseRepository;
+    @Value("${gcp.bucket.name:know-ted-bucket}")
+    private String bucketName;
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "application/pdf",
@@ -53,8 +56,8 @@ public class GCSStorageServiceUseCase {
             throw new IllegalArgumentException("Uploaded file is empty");
         }
 
-        String contentType = cmd.getContentType();
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+        String contentType = normalizeContentType(cmd.getContentType());
+        if (!isAllowedFile(cmd.getOriginalFilename(), contentType)) {
             throw new InvalidFileTypeException("Unsupported file type: " + contentType);
         }
         // 4. Upload to storage
@@ -73,7 +76,7 @@ public class GCSStorageServiceUseCase {
                 course,                          // Course object (teammate's choice)
                 cmd.getStudentId(),
                 storageKey,
-                "know-ted-bucket",               // or injected constant
+                bucketName,
                 cmd.getOriginalFilename(),
                 contentType,
                 cmd.getSize()
@@ -99,5 +102,28 @@ public class GCSStorageServiceUseCase {
                 presignedUrl,
                 course.getCourseId()
         );
+    }
+
+    private String normalizeContentType(String contentType) {
+        return contentType == null ? "" : contentType.trim().toLowerCase();
+    }
+
+    private boolean isAllowedFile(String fileName, String contentType) {
+        if (ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            return true;
+        }
+        if ("application/octet-stream".equals(contentType)) {
+            String lower = fileName == null ? "" : fileName.toLowerCase();
+            return lower.endsWith(".pdf")
+                    || lower.endsWith(".doc")
+                    || lower.endsWith(".docx")
+                    || lower.endsWith(".txt")
+                    || lower.endsWith(".jpg")
+                    || lower.endsWith(".jpeg")
+                    || lower.endsWith(".png")
+                    || lower.endsWith(".gif")
+                    || lower.endsWith(".pptx");
+        }
+        return false;
     }
 }

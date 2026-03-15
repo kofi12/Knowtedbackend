@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.time.Duration;
 
 @Service
-@ConditionalOnProperty(name = "storage.provider", havingValue = "noop", matchIfMissing = true)
+@ConditionalOnProperty(name = "storage.provider", havingValue = "noop")
 @SuppressWarnings("unused")
 public class NoopStorageService implements StorageService {
 

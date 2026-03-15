@@ -16,7 +16,8 @@ public class CourseMapper {
                 c.getName(),
                 c.getTerm(),
                 c.getCreatedAt(),
-                c.getUpdatedAt()
+                c.getUpdatedAt(),
+                0
         );
     }
 }

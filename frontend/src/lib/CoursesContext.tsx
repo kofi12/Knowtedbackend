@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { Course, mockCourses } from './mockData';
+import { Course } from './mockData';
 import {
   CourseDto,
   fetchCourses as apiFetchCourses,
@@ -57,7 +57,7 @@ function dtoToCourse(dto: CourseDto, index: number): Course {
     name: dto.name,
     semester,
     year,
-    materialsCount: 0,
+    materialsCount: dto.materialCount ?? 0,
     aidsCount: 0,
     lastUpdated: formatRelativeTime(dto.updatedAt),
     color: COLORS[index % COLORS.length],
@@ -72,7 +72,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
   const loadCourses = useCallback(async () => {
     const userId = getUserIdFromToken();
     if (!userId) {
-      setCourses(mockCourses);
+      setCourses([]);
       setLoading(false);
       return;
     }
@@ -80,7 +80,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
       const dtos = await apiFetchCourses(userId);
       setCourses(dtos.map((dto, i) => dtoToCourse(dto, i)));
     } catch {
-      setCourses(mockCourses);
+      setCourses([]);
     } finally {
       setLoading(false);
     }
@@ -95,17 +95,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
     const term = `${course.semester} ${course.year}`;
 
     if (!userId) {
-      // Offline / no token — local-only
-      const newCourse: Course = {
-        ...course,
-        id: crypto.randomUUID(),
-        materialsCount: 0,
-        aidsCount: 0,
-        lastUpdated: 'Just now',
-        progress: 0,
-      };
-      setCourses((prev: Course[]) => [newCourse, ...prev]);
-      return;
+      throw new Error('You are not authenticated. Sign in with Google first.');
     }
 
     try {
@@ -114,16 +104,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
       created.color = course.color;
       setCourses((prev: Course[]) => [created, ...prev]);
     } catch {
-      // Fallback to local
-      const newCourse: Course = {
-        ...course,
-        id: crypto.randomUUID(),
-        materialsCount: 0,
-        aidsCount: 0,
-        lastUpdated: 'Just now',
-        progress: 0,
-      };
-      setCourses((prev: Course[]) => [newCourse, ...prev]);
+      throw new Error('Failed to create course in API');
     }
   };
 
@@ -132,7 +113,10 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
     setCourses((prev: Course[]) => prev.map((c: Course) => (c.id === id ? { ...c, ...updates, lastUpdated: 'Just now' } : c)));
 
     const userId = getUserIdFromToken();
-    if (!userId) return;
+    if (!userId) {
+      await loadCourses();
+      throw new Error('You are not authenticated. Sign in with Google first.');
+    }
 
     const current = courses.find(c => c.id === id);
     if (!current) return;
@@ -150,6 +134,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
     } catch {
       // Revert on failure
       await loadCourses();
+      throw new Error('Failed to update course in API');
     }
   };
 
@@ -158,13 +143,17 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
     setCourses((prev: Course[]) => prev.filter((c: Course) => c.id !== id));
 
     const userId = getUserIdFromToken();
-    if (!userId) return;
+    if (!userId) {
+      await loadCourses();
+      throw new Error('You are not authenticated. Sign in with Google first.');
+    }
 
     try {
       await apiDeleteCourse(userId, id);
     } catch {
       // Revert on failure
       await loadCourses();
+      throw new Error('Failed to delete course in API');
     }
   };
 
