@@ -11,9 +11,12 @@ interface HeaderProps {
   onMenuToggle?: () => void;
 }
 
-export function Header({ breadcrumb, showGenerate = false, onGenerate, onNewCourse, onMenuToggle }: HeaderProps) {
-  const navigate = useNavigate();
 
+export function Header({ breadcrumb, showGenerate = false, onGenerate, onNewCourse, onMenuToggle }: HeaderProps) {
+    console.log("Header is rendering – should have router context");
+  //const navigate = useNavigate();
+const routerCtx = useContext(UNSAFE_DataRouterContext);
+console.log('Header: Router context present?', !!routerCtx, routerCtx);
   return (
     <header className="h-14 md:h-16 border-b border-border flex items-center justify-between px-4 md:px-6 lg:px-8">
       <div className="flex items-center gap-2 md:gap-3">
