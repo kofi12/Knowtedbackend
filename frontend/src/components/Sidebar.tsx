@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Home, Book, Plus, ChevronDown, ChevronRight, Moon, Sun, LogOut, User, X } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from './ThemeProvider';
 import { useCourses } from '../lib/CoursesContext';
 import { logout } from '../lib/api';
