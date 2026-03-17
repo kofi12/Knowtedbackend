@@ -1,5 +1,3 @@
-import axios from "axios";
-
 export interface UserProfile {
   studentId: string;
   email: string;
@@ -187,39 +185,6 @@ export async function fetchDashboardRecent(userId: string, courseId?: string, li
 export async function deleteDocument(documentId: string): Promise<void> {
   return apiFetch<void>(`/api/documents/${documentId}`, { method: 'DELETE' });
 }
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api", // adjust to your backend URL
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Automatically attach token to every request
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("knowted_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Optional: handle 401 globally → logout
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("knowted_token");
-      window.location.href = "/login"; // or use navigate if in component
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default api;
 
 export async function fetchCourseDocuments(courseId: string, page = 0, size = 20): Promise<CourseDocumentResponseDto[]> {
   const params = new URLSearchParams({
