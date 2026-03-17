@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           // Store token
-          localStorage.setItem("knowted_token", token);
+          localStorage.setItem("token", token);
 
           // Set user state
           setUser({
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // 2. On mount / refresh: check existing stored token
-      const storedToken = localStorage.getItem("knowted_token");
+      const storedToken = localStorage.getItem("token");
       if (storedToken) {
         try {
           const decoded: any = jwtDecode(storedToken);
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [location.search, navigate]);
 
   const logout = () => {
-    localStorage.removeItem("knowted_token");
+    localStorage.removeItem("token");
     setUser(null);
     navigate("/login");
   };
