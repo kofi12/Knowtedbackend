@@ -88,7 +88,7 @@ export function getUserIdFromToken(): string | null {
 
     const payload = JSON.parse(atob(padded));
 
-    console.log("JWT payload:", payload); // 👈 ADD THIS
+    console.log("JWT payload:", payload);
     console.log("Extracted sub:", payload.sub);
 
     return payload.sub || null;
