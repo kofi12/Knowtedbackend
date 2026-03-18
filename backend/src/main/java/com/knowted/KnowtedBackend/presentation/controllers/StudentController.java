@@ -2,7 +2,6 @@ package com.knowted.KnowtedBackend.presentation.controllers;
 
 import com.knowted.KnowtedBackend.domain.entity.Student;
 import com.knowted.KnowtedBackend.domain.repository.StudentRepository;
-import com.knowted.KnowtedBackend.domain.exception.StudentNotFoundException;
 import com.knowted.KnowtedBackend.presentation.dto.StudentResponseDto;
 import com.knowted.KnowtedBackend.presentation.mapper.StudentMapper;
 import io.swagger.v3.oas.annotations.Operation;
