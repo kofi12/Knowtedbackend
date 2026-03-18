@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Home, Book, Plus, ChevronDown, Moon, Sun, LogOut, User, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
@@ -11,6 +11,66 @@ interface SidebarProps {
   onNewCourse: () => void
   mobileMenuOpen?: boolean
   onMobileMenuClose?: () => void
+}
+
+function AnimatedButton({
+  children,
+  className = "",
+  glowColor = "bg-primary/30",
+  onClick,
+}: any) {
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  const [hovered, setHovered] = useState(false)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+
+    const rotateX = -(y - centerY) / 12
+    const rotateY = (x - centerX) / 12
+
+    setPos({ x, y })
+    setTilt({ x: rotateX, y: rotateY })
+  }
+
+  const handleMouseEnter = () => setHovered(true)
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 })
+    setHovered(false)
+  }
+
+  return (
+    <div
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+      className={`relative overflow-hidden ${className}`}
+      style={{
+        transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+        transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1), background-color 0.2s ease, color 0.2s ease'
+      }}
+    >
+      {/* Dynamic Glow */}
+      <span
+        className={`absolute pointer-events-none w-36 h-36 rounded-full blur-2xl ${glowColor} transition-opacity duration-200`}
+        style={{
+          transform: `translate(${pos.x - 72}px, ${pos.y - 72}px)`,
+          opacity: hovered ? 1 : 0,
+        }}
+      />
+
+      <div className="relative z-10 flex items-center gap-3 w-full">
+        {children}
+      </div>
+    </div>
+  )
 }
 
 export function Sidebar({
@@ -28,7 +88,13 @@ export function Sidebar({
   const { courses } = useCourses()
   const [coursesExpanded, setCoursesExpanded] = useState(true)
 
-  const isActive = (path: string) => pathname === path
+  const isLight = theme === 'light'
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
+  }, [mobileMenuOpen])
+
+  const isActive = (path: string) => pathname.startsWith(path)
 
   const handleLinkClick = () => {
     if (onMobileMenuClose) onMobileMenuClose()
@@ -38,10 +104,13 @@ export function Sidebar({
     try {
       await logout()
     } finally {
-      if (onMobileMenuClose) onMobileMenuClose()
+      handleLinkClick()
       navigate('/login?reason=logged-out', { replace: true })
     }
   }
+
+  const baseBtn =
+    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] active:scale-95 will-change-transform cursor-pointer"
 
   return (
     <>
@@ -58,13 +127,11 @@ export function Sidebar({
           h-[calc(100vh-1rem)] md:h-[calc(100vh-2rem)]
           bg-gradient-to-b from-card to-muted/20
           border border-border rounded-xl
-          shadow-sm flex flex-col z-50 overflow-hidden
-          transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
+          shadow-sm flex flex-col z-50
+          transition-all duration-500
           ${isCollapsed ? 'w-16' : 'w-64'}
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
         `}
-        onMouseEnter={() => !mobileMenuOpen && isCollapsed && onToggleCollapse()}
-        onMouseLeave={() => !mobileMenuOpen && !isCollapsed && onToggleCollapse()}
       >
 
         {mobileMenuOpen && (
@@ -76,185 +143,118 @@ export function Sidebar({
           </button>
         )}
 
-        {/* Logo */}
-        <div className="h-24 flex items-center px-6 border-b border-border shrink-0 relative">
-
-          <div
-            className={`absolute inset-x-6 flex flex-col gap-1 transition-all duration-300
-              ${isCollapsed ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100'}
-            `}
-          >
-            <div className="font-bold text-xl tracking-tight">
-              Know-ted
+        {/* Header */}
+        <div className="min-h-24 flex items-center px-4 border-b border-border shrink-0">
+          {!isCollapsed ? (
+            <div className="flex flex-col leading-tight">
+              <span className="font-bold text-lg md:text-xl">Know-ted</span>
+              <span className="text-xs text-muted-foreground">Optimize your learning</span>
             </div>
-
-            <div className="text-xs text-muted-foreground">
-              Optimize your learning
-            </div>
-          </div>
-
-          <div
-            className={`mx-auto font-bold text-xl transition-all duration-300
-              ${isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-            `}
-          >
-            K
-          </div>
-
+          ) : (
+            <div className="mx-auto font-bold text-xl">K</div>
+          )}
         </div>
 
-
-        {/* Navigation */}
+        {/* Nav */}
         <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
 
-          {/* Dashboard */}
-          <Link
-            to="/"
-            onClick={handleLinkClick}
-            className={`
-              group flex items-center gap-3 px-3 py-2.5 rounded-lg
-              transition-all duration-200
-              ${isActive('/')
-                ? 'bg-primary/15 text-primary border border-primary/20'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-[1.02]'}
-            `}
-          >
-            <Home className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
-            {!isCollapsed && <span>Dashboard</span>}
-          </Link>
-
+          <AnimatedButton className={`${baseBtn} text-muted-foreground hover:text-foreground`}>
+            <Link
+              to="/"
+              onClick={handleLinkClick}
+              className={`flex items-center gap-3 w-full ${isActive('/') ? 'text-primary' : ''}`}
+            >
+              <Home className="w-5 h-5" />
+              {!isCollapsed && <span>Dashboard</span>}
+            </Link>
+          </AnimatedButton>
 
           {/* Courses */}
-          <div>
-
-            <button
-              onClick={() => setCoursesExpanded(!coursesExpanded)}
-              className="group w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-            >
-
+          <AnimatedButton
+            className={`${baseBtn} text-muted-foreground hover:text-foreground`}
+            onClick={() => setCoursesExpanded(!coursesExpanded)}
+          >
+            <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
-                <Book className="w-5 h-5 transition-transform group-hover:scale-110" />
-                {!isCollapsed && <span className="font-medium">Courses</span>}
+                <Book className="w-5 h-5" />
+                {!isCollapsed && <span>Courses</span>}
               </div>
-
               {!isCollapsed && (
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300
-                    ${coursesExpanded ? 'rotate-180' : ''}
-                  `}
-                />
+                <ChevronDown className={`w-4 h-4 transition-transform ${coursesExpanded ? 'rotate-180' : ''}`} />
               )}
-
-            </button>
-
-
-            <div
-              className={`
-                overflow-hidden transition-all duration-300
-                ${!isCollapsed && coursesExpanded
-                  ? 'max-h-[500px] opacity-100'
-                  : 'max-h-0 opacity-0'}
-              `}
-            >
-
-              <div className="ml-8 mt-2 space-y-1 pb-2">
-
-                {courses.map((course, i) => (
-
-                  <Link
-                    key={course.id}
-                    to={`/course/${course.id}`}
-                    onClick={handleLinkClick}
-                    className={`
-                      block px-3 py-1.5 text-sm rounded-lg transition-all
-                      ${pathname === `/course/${course.id}`
-                        ? 'bg-secondary text-secondary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted hover:translate-x-1 hover:scale-[1.02]'}
-                    `}
-                    style={{
-                      transitionDelay: `${i * 30}ms`,
-                      opacity: !isCollapsed && coursesExpanded ? 1 : 0,
-                      transform: !isCollapsed && coursesExpanded
-                        ? 'translateX(0)'
-                        : 'translateX(-8px)',
-                    }}
-                  >
-                    {course.name}
-                  </Link>
-
-                ))}
-
-              </div>
-
             </div>
+          </AnimatedButton>
 
+          <div
+            className="overflow-hidden transition-all duration-300"
+            style={{
+              maxHeight: !isCollapsed && coursesExpanded ? '400px' : '0px'
+            }}
+          >
+            <div className="ml-8 mt-2 space-y-1 pb-2">
+              {courses.map((course) => (
+                <Link
+                  key={course.id}
+                  to={`/course/${course.id}`}
+                  onClick={handleLinkClick}
+                  className={`block px-3 py-1.5 text-sm rounded-lg transition-all ${
+                    pathname.startsWith(`/course/${course.id}`)
+                      ? 'bg-secondary text-secondary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted hover:translate-x-1'
+                  }`}
+                >
+                  {course.name}
+                </Link>
+              ))}
+            </div>
           </div>
 
-
           {/* New Course */}
-          <button
-            onClick={() => {
-              onNewCourse()
-              handleLinkClick()
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all hover:scale-[1.02]"
+          <AnimatedButton
+            className={`${baseBtn} bg-accent text-accent-foreground`}
+            onClick={() => { onNewCourse(); handleLinkClick() }}
           >
-            <Plus className="w-5 h-5 shrink-0 transition-transform group-hover:rotate-90" />
-            {!isCollapsed && <span>New Course</span>}
-          </button>
+            <div className="flex items-center gap-3 w-full">
+              <Plus className="w-5 h-5" />
+              {!isCollapsed && <span>New Course</span>}
+            </div>
+          </AnimatedButton>
 
         </nav>
 
-
-        {/* Footer */}
+        {/* Bottom */}
         <div className="border-t border-border p-3 space-y-2 shrink-0">
 
-          {/* Profile */}
-          <Link
-            to="/profile"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all
-              ${isCollapsed ? 'justify-center' : ''}
-            `}
-          >
-            <User className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span className="text-sm font-medium">Profile</span>}
-          </Link>
+          <AnimatedButton className={`${baseBtn} text-muted-foreground hover:text-foreground`}>
+            <Link to="/profile" className="flex items-center gap-3 w-full">
+              <User className="w-5 h-5" />
+              {!isCollapsed && <span className="text-sm">Profile</span>}
+            </Link>
+          </AnimatedButton>
 
-
-          {/* Theme Toggle */}
-          <button
+          {/* THEME BUTTON */}
+          <AnimatedButton
+            glowColor={isLight ? "bg-black/40" : "bg-white/40"}
+            className={`${baseBtn} text-muted-foreground ${
+              isLight
+                ? 'hover:bg-neutral-900 hover:text-white'
+                : 'hover:bg-white hover:text-black'
+            }`}
             onClick={toggleTheme}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all
-              ${isCollapsed ? 'justify-center' : ''}
-            `}
           >
-            {theme === 'light'
-              ? <Moon className="w-5 h-5 shrink-0" />
-              : <Sun className="w-5 h-5 shrink-0" />
-            }
+            {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            {!isCollapsed && <span>{isLight ? 'Dark Mode' : 'Light Mode'}</span>}
+          </AnimatedButton>
 
-            {!isCollapsed &&
-              <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
-            }
-
-          </button>
-
-
-          {/* Logout */}
-          <button
+          {/* LOGOUT BUTTON */}
+          <AnimatedButton
+            glowColor="bg-red-500/50"
+            className={`${baseBtn} text-red-400 hover:bg-red-500 hover:text-white`}
             onClick={handleLogout}
-            className={`
-              w-full flex items-center gap-3 px-3 py-2 rounded-lg
-              text-red-400 hover:text-red-500
-              hover:bg-red-500/10
-              transition-all
-              ${isCollapsed ? 'justify-center' : ''}
-            `}
           >
-            <LogOut className="w-5 h-5 shrink-0" />
+            <LogOut className="w-5 h-5" />
             {!isCollapsed && <span>Logout</span>}
-          </button>
+          </AnimatedButton>
 
         </div>
 
@@ -262,4 +262,3 @@ export function Sidebar({
     </>
   )
 }
-
