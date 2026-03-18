@@ -9,10 +9,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 interface User {
-  id: string;
+  id: string | null;
   email: string;
   display_name?: string;
-  // Add any other fields your JWT payload contains
 }
 
 interface AuthContextType {
@@ -23,6 +22,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper: validate UUID
+const isUUID = (val?: string) =>
+  typeof val === "string" && /^[0-9a-fA-F-]{36}$/.test(val);
+
+// Helper: safely extract user ID
+const extractUserId = (decoded: any): string | null => {
+  if (isUUID(decoded.userId)) return decoded.userId;
+  if (isUUID(decoded.id)) return decoded.id;
+  if (isUUID(decoded.sub)) return decoded.sub;
+  return null;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
@@ -30,59 +41,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleToken = () => {
-      // 1. Check for token in URL query param (after redirect from login)
       const params = new URLSearchParams(location.search);
-      const token = params.get("token");
+      const tokenFromUrl = params.get("token");
 
-      if (token) {
+      const processToken = (token: string) => {
         try {
           const decoded: any = jwtDecode(token);
           const now = Date.now() / 1000;
-
           if (decoded.exp < now) {
-            console.warn("Received token is already expired");
+            console.warn("Token expired");
             logout();
             return;
           }
-
-          // Store token
-          localStorage.setItem("token", token);
-
-          // Set user state
+          const extractedId = extractUserId(decoded);
           setUser({
-            id: decoded.sub || decoded.userId || decoded.id,
+            id: extractedId,
             email: decoded.email,
             display_name: decoded.display_name || decoded.name,
           });
-
-          // Clean the URL (remove ?token=...)
-          navigate(location.pathname, { replace: true });
         } catch (err) {
           console.error("Invalid JWT", err);
           logout();
         }
+      };
+
+      // 1. Token from URL (after login redirect)
+      if (tokenFromUrl) {
+        localStorage.setItem("token", tokenFromUrl);
+        processToken(tokenFromUrl);
+
+        // Clean URL
+        navigate(location.pathname, { replace: true });
         return;
       }
 
-      // 2. On mount / refresh: check existing stored token
+      // 2. Existing stored token
       const storedToken = localStorage.getItem("token");
       if (storedToken) {
-        try {
-          const decoded: any = jwtDecode(storedToken);
-          const now = Date.now() / 1000;
-
-          if (decoded.exp < now) {
-            logout();
-          } else {
-            setUser({
-              id: decoded.sub || decoded.userId || decoded.id,
-              email: decoded.email,
-              display_name: decoded.display_name || decoded.name,
-            });
-          }
-        } catch {
-          logout();
-        }
+        processToken(storedToken);
       }
     };
 
@@ -97,17 +93,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user?.id,
     logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Combined hook – now exported from the same file
+// ✅ Hook
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

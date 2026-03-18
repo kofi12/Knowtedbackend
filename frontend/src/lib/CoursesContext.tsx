@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
 import { Course } from "./mockData";
 import {
   CourseDto,
@@ -7,6 +14,7 @@ import {
   updateCourse as apiUpdateCourse,
   deleteCourse as apiDeleteCourse,
 } from "./api";
+import { useAuth } from "../context/AuthContext";
 
 interface CoursesContextType {
   courses: Course[];
@@ -76,36 +84,29 @@ function dtoToCourse(dto: CourseDto, index: number): Course {
   };
 }
 
-/* ---------- Auth Helper ---------- */
-
-function getAuthToken(): string | null {
-  return localStorage.getItem("token");
-}
-
 /* ---------- Provider ---------- */
 
 export function CoursesProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadCourses = useCallback(async () => {
-    const token = getAuthToken();
-
-    if (!token) {
+    if (!user?.id) {
       setCourses([]);
       setLoading(false);
       return;
     }
 
     try {
-      const dtos = await apiFetchCourses(token);
+      const dtos = await apiFetchCourses(user.id);
       setCourses(dtos.map((dto, i) => dtoToCourse(dto, i)));
     } catch {
       setCourses([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     loadCourses();
@@ -116,16 +117,14 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
   const addCourse = async (
     course: Omit<Course, "id" | "materialsCount" | "aidsCount" | "lastUpdated" | "progress">
   ) => {
-    const token = getAuthToken();
-
-    if (!token) {
-      throw new Error("You are not authenticated. Sign in with Google first.");
+    if (!user?.id) {
+      throw new Error("You are not authenticated.");
     }
 
     const term = `${course.semester} ${course.year}`;
 
     try {
-      const dto = await apiCreateCourse(token, {
+      const dto = await apiCreateCourse(user.id, {
         name: course.name,
         term,
       });
@@ -151,9 +150,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
       )
     );
 
-    const token = getAuthToken();
-
-    if (!token) {
+    if (!user?.id) {
       await loadCourses();
       throw new Error("You are not authenticated.");
     }
@@ -172,7 +169,7 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      await apiUpdateCourse(token, id, patchData);
+      await apiUpdateCourse(user.id, id, patchData);
     } catch {
       await loadCourses();
       throw new Error("Failed to update course");
@@ -184,15 +181,13 @@ export function CoursesProvider({ children }: { children: ReactNode }) {
   const deleteCourse = async (id: string) => {
     setCourses((prev) => prev.filter((c) => c.id !== id));
 
-    const token = getAuthToken();
-
-    if (!token) {
+    if (!user?.id) {
       await loadCourses();
       throw new Error("You are not authenticated.");
     }
 
     try {
-      await apiDeleteCourse(token, id);
+      await apiDeleteCourse(user.id, id);
     } catch {
       await loadCourses();
       throw new Error("Failed to delete course");
