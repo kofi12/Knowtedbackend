@@ -95,20 +95,13 @@ export function hasStoredToken(): boolean {
 export function getUserIdFromToken(): string | null {
   const token = localStorage.getItem('token');
   if (!token) return null;
-
   try {
     const payloadPart = token.split('.')[1];
+    if (!payloadPart) return null;
+    // JWT payload uses base64url; normalize before decoding.
     const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = normalized.padEnd(
-      normalized.length + ((4 - (normalized.length % 4)) % 4),
-      '='
-    );
-
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
     const payload = JSON.parse(atob(padded));
-
-    console.log("JWT payload:", payload);
-    console.log("Extracted sub:", payload.sub);
-
     return payload.sub || null;
   } catch {
     return null;
@@ -174,30 +167,8 @@ export async function fetchCourse(userId: string, courseId: string): Promise<Cou
   return apiFetch<CourseDto>(`/api/courses/${courseId}?userId=${userId}`);
 }
 
-export async function createCourse(
-  userId: string,
-  data: { name: string; code?: string; term?: string }
-): Promise<CourseDto> {
-
-  // 🔍 DEBUG START
-  console.log("=== CREATE COURSE DEBUG ===");
-
-  console.log("userId value:", userId);
-  console.log("userId type:", typeof userId);
-  console.log("userId length:", userId?.length);
-
-  // Check if it looks like a UUID
-  const uuidRegex = /^[0-9a-fA-F-]{36}$/;
-  console.log("is valid UUID format:", uuidRegex.test(userId));
-
-  console.log("request body:", data);
-
-  const url = `/api/courses?userId=${userId}`;
-  console.log("final URL:", `${BASE_URL}${url}`);
-
-  // 🔍 DEBUG END
-
-  return apiFetch<CourseDto>(url, {
+export async function createCourse(userId: string, data: { name: string; code?: string; term?: string }): Promise<CourseDto> {
+  return apiFetch<CourseDto>(`/api/courses?userId=${userId}`, {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -379,4 +350,3 @@ export async function listQuizAttempts(quizId: string): Promise<QuizAttemptRespo
 export async function deleteQuiz(quizId: string): Promise<void> {
   return apiFetch<void>(`/api/quizzes/${quizId}`, { method: 'DELETE' });
 }
-

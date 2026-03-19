@@ -1,42 +1,33 @@
-import { Sparkles, ChevronRight, Plus, Menu, ArrowLeft } from 'lucide-react'
-import { Button } from './ui/button'
-import { useNavigate } from 'react-router-dom'
+import { Sparkles, ChevronRight, Plus, Menu, ArrowLeft } from 'lucide-react';
+import { Button } from './ui/button';
+import { useNavigate } from 'react-router';
 
 interface HeaderProps {
-  title?: string
-  breadcrumb?: string
-  showGenerate?: boolean
-  onGenerate?: () => void
-  onNewCourse?: () => void
-  onMenuToggle?: () => void
+  title: string;
+  breadcrumb?: string;
+  showGenerate?: boolean;
+  onGenerate?: () => void;
+  onNewCourse?: () => void;
+  onMenuToggle?: () => void;
 }
 
-export function Header({
-  title,
-  breadcrumb,
-  showGenerate = false,
-  onGenerate,
-  onNewCourse,
-  onMenuToggle,
-}: HeaderProps) {
-  const navigate = useNavigate()
+export function Header({ breadcrumb, showGenerate = false, onGenerate, onNewCourse, onMenuToggle }: HeaderProps) {
+  const navigate = useNavigate();
 
   return (
-    <header className="h-14 md:h-16 border-b border-border flex items-center justify-between px-4 md:px-6 lg:px-8 bg-background">
-
-      {/* Left Section */}
+    <header className="h-14 md:h-16 border-b border-border flex items-center justify-between px-4 md:px-6 lg:px-8">
       <div className="flex items-center gap-2 md:gap-3">
-
+        {/* Mobile menu button */}
         {onMenuToggle && (
           <button
             onClick={onMenuToggle}
-            aria-label="Toggle Menu"
             className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors -ml-2"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
-
+        
+        {/* Back button - shows when there's a breadcrumb */}
         {breadcrumb && (
           <button
             onClick={() => navigate(-1)}
@@ -49,45 +40,29 @@ export function Header({
 
         {breadcrumb && (
           <>
-            <span className="text-sm md:text-base text-muted-foreground">
-              {breadcrumb}
-            </span>
+            <span className="text-sm md:text-base text-muted-foreground">{breadcrumb}</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </>
         )}
-
-        {title && (
-          <h1 className="font-semibold text-sm md:text-base truncate">
-            {title}
-          </h1>
-        )}
       </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-2 md:gap-3">
-
+      {/* Right: New Course + Generate */}
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* New Course Button */}
         {onNewCourse && (
-          <Button
-            variant="blue"
-            size="icon"
-            onClick={onNewCourse}
-            aria-label="Create new course"
-          >
+          <Button variant="blue" size="icon" onClick={onNewCourse}>
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
         )}
 
+        {/* Generate Button */}
         {showGenerate && (
-          <Button
-            onClick={onGenerate}
-            className="text-sm flex items-center gap-2"
-          >
+          <Button onClick={onGenerate} className="text-sm">
             <Sparkles className="w-4 h-4" />
             <span className="hidden sm:inline">Generate</span>
           </Button>
         )}
       </div>
-
     </header>
-  )
+  );
 }

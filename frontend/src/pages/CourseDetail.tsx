@@ -253,15 +253,7 @@ export function CourseDetail() {
       setQuizError(err instanceof Error ? err.message : 'Failed to delete quiz.');
     } finally {
       setDeletingQuizId(null);
-
     }
-
-    if (aid.type === 'quiz') {
-      navigate(`/course/${courseId}/quiz/${aid.id}`);
-      return;
-    }
-
-    console.log('Opening aid:', aid);
   };
 
   const handleEditCourseSave = async (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
