@@ -32,8 +32,8 @@ function useTilt() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const rotateX = -(y - rect.height / 2) / 60;
-    const rotateY = (x - rect.width / 2) / 60;
+    const rotateX = -(y - rect.height / 2) / 240;
+    const rotateY = (x - rect.width / 2) / 240;
 
     el.style.transform = `
       perspective(1200px)

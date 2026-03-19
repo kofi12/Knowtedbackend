@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Home, Book, Plus, ChevronDown, Moon, Sun, LogOut, User, X } from 'lucide-react'
+import { Home, Book, Plus, ChevronDown, Moon, Sun, LogOut, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
 import { useCourses } from '../lib/CoursesContext'
-import { logout } from '../lib/api'
+import { logout, fetchCurrentUser, UserProfile } from '../lib/api'
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -11,6 +11,21 @@ interface SidebarProps {
   onNewCourse: () => void
   mobileMenuOpen?: boolean
   onMobileMenuClose?: () => void
+}
+
+interface ProfileUser extends UserProfile {
+  authProvider?: string
+}
+
+function getInitials(name?: string) {
+  if (!name?.trim()) return 'U'
+  return name
+    .trim()
+    .split(/\s+/)
+    .map(p => p[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 }
 
 function AnimatedButton({
@@ -31,8 +46,8 @@ function AnimatedButton({
     const centerX = rect.width / 2
     const centerY = rect.height / 2
 
-    const rotateX = -(y - centerY) / 12
-    const rotateY = (x - centerX) / 12
+    const rotateX = -(y - centerY) / 20
+    const rotateY = (x - centerX) / 20
 
     setPos({ x, y })
     setTilt({ x: rotateX, y: rotateY })
@@ -57,15 +72,13 @@ function AnimatedButton({
         transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1), background-color 0.2s ease, color 0.2s ease'
       }}
     >
-      {/* Dynamic Glow */}
       <span
-        className={`absolute pointer-events-none w-36 h-36 rounded-full blur-2xl ${glowColor} transition-opacity duration-200`}
+        className={`absolute pointer-events-none w-36 h-36 rounded-full blur-2xl ${glowColor} transition-opacity duration-200 mix-blend-screen`}
         style={{
           transform: `translate(${pos.x - 72}px, ${pos.y - 72}px)`,
           opacity: hovered ? 1 : 0,
         }}
       />
-
       <div className="relative z-10 flex items-center gap-3 w-full">
         {children}
       </div>
@@ -87,8 +100,13 @@ export function Sidebar({
   const { theme, toggleTheme } = useTheme()
   const { courses } = useCourses()
   const [coursesExpanded, setCoursesExpanded] = useState(true)
+  const [user, setUser] = useState<ProfileUser | null>(null)
 
   const isLight = theme === 'light'
+
+  useEffect(() => {
+    fetchCurrentUser().then(setUser).catch(() => {})
+  }, [])
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
@@ -143,7 +161,6 @@ export function Sidebar({
           </button>
         )}
 
-        {/* Header */}
         <div className="min-h-24 flex items-center px-4 border-b border-border shrink-0">
           {!isCollapsed ? (
             <div className="flex flex-col leading-tight">
@@ -155,7 +172,6 @@ export function Sidebar({
           )}
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
 
           <AnimatedButton className={`${baseBtn} text-muted-foreground hover:text-foreground`}>
@@ -169,7 +185,6 @@ export function Sidebar({
             </Link>
           </AnimatedButton>
 
-          {/* Courses */}
           <AnimatedButton
             className={`${baseBtn} text-muted-foreground hover:text-foreground`}
             onClick={() => setCoursesExpanded(!coursesExpanded)}
@@ -209,7 +224,6 @@ export function Sidebar({
             </div>
           </div>
 
-          {/* New Course */}
           <AnimatedButton
             className={`${baseBtn} bg-accent text-accent-foreground`}
             onClick={() => { onNewCourse(); handleLinkClick() }}
@@ -222,17 +236,45 @@ export function Sidebar({
 
         </nav>
 
-        {/* Bottom */}
         <div className="border-t border-border p-3 space-y-2 shrink-0">
 
-          <AnimatedButton className={`${baseBtn} text-muted-foreground hover:text-foreground`}>
-            <Link to="/profile" className="flex items-center gap-3 w-full">
-              <User className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm">Profile</span>}
+          <AnimatedButton
+            className={`${baseBtn} text-muted-foreground hover:text-foreground`}
+            glowColor={isLight ? "bg-green-400/30" : "bg-blue-500/40"}
+          >
+            <Link
+              to="/profile"
+              onClick={handleLinkClick}
+              className="flex items-center gap-3 w-full"
+            >
+              <div className="relative flex items-center justify-center">
+                {!isCollapsed && (
+                  <div className="absolute w-10 h-10 rounded-full blur-xl bg-green-400/30 dark:bg-blue-500/30" />
+                )}
+                <div className="relative h-9 w-9 rounded-full p-[2px]
+                  bg-gradient-to-br
+                  from-green-400 via-emerald-500 to-green-600
+                  dark:from-blue-500 dark:via-indigo-500 dark:to-blue-600
+                ">
+                  <div className="w-full h-full rounded-full bg-background flex items-center justify-center text-xs font-bold">
+                    {getInitials(user?.displayName)}
+                  </div>
+                </div>
+              </div>
+
+              {!isCollapsed && (
+                <div className="flex flex-col leading-tight overflow-hidden">
+                  <span className="text-sm font-medium truncate">
+                    {user?.displayName || 'User'}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    View profile
+                  </span>
+                </div>
+              )}
             </Link>
           </AnimatedButton>
 
-          {/* THEME BUTTON */}
           <AnimatedButton
             glowColor={isLight ? "bg-black/40" : "bg-white/40"}
             className={`${baseBtn} text-muted-foreground ${
@@ -246,10 +288,18 @@ export function Sidebar({
             {!isCollapsed && <span>{isLight ? 'Dark Mode' : 'Light Mode'}</span>}
           </AnimatedButton>
 
-          {/* LOGOUT BUTTON */}
           <AnimatedButton
             glowColor="bg-red-500/50"
-            className={`${baseBtn} text-red-400 hover:bg-red-500 hover:text-white`}
+            className={`
+              ${baseBtn}
+              text-red-500
+              bg-red-500/10
+              border border-red-500/20
+              hover:bg-red-500
+              hover:text-white
+              hover:border-red-500
+              active:bg-red-600
+            `}
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5" />
