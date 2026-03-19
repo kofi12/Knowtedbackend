@@ -1,123 +1,196 @@
-import { useState, useEffect } from 'react';
-import { Mail, Shield, Calendar } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../components/ui/card';
+import { useState, useEffect, useRef } from 'react';
+import { Mail, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
-import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
 import { fetchCurrentUser, UserProfile } from '../lib/api';
 import { mockCurrentUser } from '../lib/mockData';
 
 interface ProfileUser extends UserProfile {
   authProvider?: string;
-  createdAt?: string;
 }
 
-function getInitials(name: string): string {
+function getInitials(name: string = '') {
   return name
     .split(' ')
-    .map(part => part[0])
+    .filter(Boolean)
+    .map(p => p[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || 'U';
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+function useTilt() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const rotateX = -(y - rect.height / 2) / 60;
+    const rotateY = (x - rect.width / 2) / 60;
+
+    el.style.transform = `
+      perspective(1200px)
+      rotateX(${rotateX}deg)
+      rotateY(${rotateY}deg)
+      scale(1.01)
+    `;
+  };
+
+  const handleMouseLeave = () => {
+    if (ref.current) {
+      ref.current.style.transform =
+        'perspective(1200px) rotateX(0) rotateY(0) scale(1)';
+    }
+  };
+
+  return { ref, handleMouseMove, handleMouseLeave };
 }
 
 export function Profile() {
   const [user, setUser] = useState<ProfileUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState('');
+  const [provider, setProvider] = useState('');
+  const tilt = useTilt();
 
   useEffect(() => {
     async function loadUser() {
       try {
         const apiUser = await fetchCurrentUser();
         setUser(apiUser);
+        setName(apiUser.displayName);
+        setProvider(apiUser.authProvider || 'google');
       } catch {
-        setUser({
-          studentId: mockCurrentUser.studentId,
-          email: mockCurrentUser.email,
-          displayName: mockCurrentUser.displayName,
-          authProvider: mockCurrentUser.authProvider,
-          createdAt: mockCurrentUser.createdAt,
-        });
-      } finally {
-        setLoading(false);
+        setUser(mockCurrentUser);
+        setName(mockCurrentUser.displayName);
+        setProvider(mockCurrentUser.authProvider || 'google');
       }
     }
     loadUser();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">Loading profile...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">Could not load profile.</p>
-      </div>
-    );
-  }
+  if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6">Profile</h1>
+    <div className="min-h-screen bg-background text-foreground pt-20 pb-16 px-6">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-4xl font-bold mb-16 md:mb-20">
+          Profile
+        </h1>
 
-      <Card>
-        <CardHeader className="flex flex-col items-center gap-4 pb-2">
-          <Avatar className="h-20 w-20 text-2xl">
-            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-          </Avatar>
-          <div className="text-center">
-            <h2 className="text-xl font-semibold">{user.displayName}</h2>
-            {user.authProvider && (
-              <Badge variant="secondary" className="mt-2 capitalize">
-                {user.authProvider}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-
-        <Separator />
-
-        <CardContent className="pt-6 space-y-4">
-          <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-muted-foreground shrink-0" />
-            <div>
-              <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{user.email}</p>
-            </div>
+        <div
+          ref={tilt.ref}
+          onMouseMove={tilt.handleMouseMove}
+          onMouseLeave={tilt.handleMouseLeave}
+          className="relative transition-transform duration-300"
+        >
+          <div className="absolute inset-0 -z-10 flex items-center justify-center">
+            <div className="
+              w-[500px] h-[500px]
+              rounded-full blur-[120px]
+              opacity-30
+              bg-green-400/20
+              dark:bg-blue-500/20
+            " />
           </div>
 
-          <div className="flex items-center gap-3">
-            <Shield className="h-5 w-5 text-muted-foreground shrink-0" />
-            <div>
-              <p className="text-sm text-muted-foreground">Student ID</p>
-              <p className="font-medium font-mono text-sm">{user.studentId}</p>
-            </div>
-          </div>
+          <div className="
+            rounded-3xl p-[1px]
+            bg-gradient-to-r
+            from-green-400/30 via-emerald-400/30 to-green-500/30
+            dark:from-blue-500/60 dark:via-indigo-500/60 dark:to-blue-600/60
+          ">
+            <div className="rounded-3xl bg-background/70 dark:bg-background/80 backdrop-blur-xl border border-border shadow-2xl p-10">
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute w-48 h-48 rounded-full bg-blue-500/20 dark:bg-blue-500/30 blur-[100px]" />
+                  <div className="absolute w-36 h-36 rounded-full border border-border animate-spin-slow" />
+                  <div className="
+                    absolute w-36 h-36 rounded-full p-[2px]
+                    bg-gradient-to-br
+                    from-green-400 via-emerald-500 to-green-600
+                    dark:from-blue-500 dark:via-indigo-500 dark:to-blue-600
+                  ">
+                    <div className="w-full h-full rounded-full bg-background" />
+                  </div>
+                  <Avatar className="h-32 w-32 text-4xl font-black shadow-2xl">
+                    <AvatarFallback className="
+                      bg-gradient-to-br
+                      from-green-500 via-emerald-500 to-green-600
+                      dark:from-blue-500 dark:via-indigo-500 dark:to-blue-600
+                      text-white
+                    ">
+                      {getInitials(name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
 
-          {user.createdAt && (
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground shrink-0" />
-              <div>
-                <p className="text-sm text-muted-foreground">Member Since</p>
-                <p className="font-medium">{formatDate(user.createdAt)}</p>
+                <h2 className="text-2xl font-semibold text-center">
+                  {name}
+                </h2>
               </div>
+
+              <div className="mt-8 max-w-md mx-auto space-y-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Display Name</p>
+                  <Input value={name} onChange={e => setName(e.target.value)} />
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Email</p>
+                  <Input value={user.email} disabled />
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Auth Provider</p>
+                  <select
+                    value={provider}
+                    onChange={e => setProvider(e.target.value)}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="google">Google</option>
+                    <option value="github">GitHub</option>
+                    <option value="apple">Apple</option>
+                  </select>
+                </div>
+
+                <Button className="w-full mt-4">
+                  Save Changes
+                </Button>
+              </div>
+
+              <Separator className="my-8" />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted">
+                  <Mail className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">EMAIL</p>
+                    <p>{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">STUDENT ID</p>
+                    <p className="font-mono text-sm break-all">
+                      {user.studentId}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
