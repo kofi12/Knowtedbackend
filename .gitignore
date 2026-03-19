@@ -45,3 +45,5 @@ frontend/dist/
 .env.*.local
 gcs-credentials.json
 backend/gcs-credentials.json
+Knowted.code-workspace
+backend.code-workspace

@@ -1,7 +1,9 @@
+// src/App.tsx
 import React from 'react';
-import { RouterProvider } from 'react-router';
+import { RouterProvider } from 'react-router-dom';
 import { ThemeProvider } from './components/ThemeProvider';
-import { router } from './routes';
+import { router } from './routes.tsx';
+import { AuthProvider } from './context/AuthContext';
 
 function hydrateTokenFromUrl() {
   const url = new URL(window.location.href);

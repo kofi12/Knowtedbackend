@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NewCourseModal } from './NewCourseModal';
@@ -7,58 +7,73 @@ import { GenerateModal } from './GenerateModal';
 import { CoursesProvider, useCourses } from '../lib/CoursesContext';
 
 export function Layout() {
-  return (
-    <CoursesProvider>
-      <LayoutContent />
-    </CoursesProvider>
-  );
-}
-
-function LayoutContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [newCourseModalOpen, setNewCourseModalOpen] = useState(false);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
+
+  return (
+    <CoursesProvider>
+      <div className="min-h-screen bg-background p-2 md:p-4">
+        {/* Mobile overlay */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        <LayoutContent
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+          newCourseModalOpen={newCourseModalOpen}
+          setNewCourseModalOpen={setNewCourseModalOpen}
+          generateModalOpen={generateModalOpen}
+          setGenerateModalOpen={setGenerateModalOpen}
+        />
+      </div>
+    </CoursesProvider>
+  );
+}
+
+function LayoutContent({
+  sidebarCollapsed,
+  setSidebarCollapsed,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  newCourseModalOpen,
+  setNewCourseModalOpen,
+  generateModalOpen,
+  setGenerateModalOpen,
+}) {
   const location = useLocation();
   const { courses } = useCourses();
 
-  // Determine header props based on route
   const getHeaderProps = () => {
     if (location.pathname === '/') {
       return { title: 'Dashboard' };
     }
-
-    const courseMatch = location.pathname.match(/^\/course\/(.+)$/);
+    const courseMatch = location.pathname.match(/^\/course\/([^/]+)/);
     if (courseMatch) {
       const courseId = courseMatch[1];
-      const course = courses.find(c => c.id === courseId);
+      const course = courses.find((c) => c.id === courseId);
       return {
         title: course?.name || 'Course',
         breadcrumb: 'Courses',
         showGenerate: true,
-        courseId: courseId,
+        courseId,
       };
     }
-
     return { title: 'Know-ted' };
   };
 
   const headerProps = getHeaderProps();
-
-  const handleGenerate = () => {
-    setGenerateModalOpen(true);
-  };
+  const handleGenerate = () => setGenerateModalOpen(true);
 
   return (
-    <div className="min-h-screen bg-background p-2 md:p-4">
-      {/* Mobile overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
+    <>
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -79,7 +94,6 @@ function LayoutContent() {
             onNewCourse={() => setNewCourseModalOpen(true)}
             onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
           />
-
           <main className="p-4 md:p-6 lg:p-8">
             <Outlet />
           </main>
@@ -99,6 +113,6 @@ function LayoutContent() {
           type="quiz"
         />
       )}
-    </div>
+    </>
   );
 }
