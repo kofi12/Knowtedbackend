@@ -2,6 +2,7 @@ import { createBrowserRouter, redirect } from 'react-router';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { CourseDetail } from './pages/CourseDetail';
+import { DocumentBank } from './pages/DocumentBank';
 import { Auth } from './pages/Auth';
 import { Profile } from './pages/Profile';
 
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: 'course/:courseId',
         Component: CourseDetail,
+      },
+      {
+        path: 'documents',
+        Component: DocumentBank,
       },
       {
         path: 'profile',

@@ -12,7 +12,7 @@ class GCSStorageServiceUseCaseTest {
 
     @Test
     void execute_throwsUnsupportedOperationException() {
-        var useCase = new GCSStorageServiceUseCase();
+        var useCase = new GCSStorageServiceUseCase(null, null, null);
         var file = new MockMultipartFile("file", "test.pdf", "application/pdf", "content".getBytes());
         var cmd = new UploadCourseDocumentDto(UUID.randomUUID(), file, UUID.randomUUID());
 

@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,10 +62,9 @@ class CourseControllerTest {
         when(courseUseCase.createCourse(eq(userId), any(CreateCourseRequest.class))).thenReturn(saved);
 
         mockMvc.perform(post("/api/courses")
-                        .param("userId", userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"code\":\"CS101\",\"name\":\"Intro\",\"term\":\"F24\"}")
-)
+                .param("userId", userId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"code\":\"CS101\",\"name\":\"Intro\",\"term\":\"F24\"}"))
                 .andExpect(status().isOk());
     }
 
@@ -77,8 +75,7 @@ class CourseControllerTest {
         when(courseUseCase.getCourse(userId, courseId)).thenReturn(c);
 
         mockMvc.perform(get("/api/courses/{courseId}", courseId)
-                        .param("userId", userId.toString())
-)
+                .param("userId", userId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Intro"));
     }
@@ -89,8 +86,7 @@ class CourseControllerTest {
                 .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Not found"));
 
         mockMvc.perform(get("/api/courses/{courseId}", courseId)
-                        .param("userId", userId.toString())
-)
+                .param("userId", userId.toString()))
                 .andExpect(status().isNotFound());
     }
 
@@ -102,10 +98,9 @@ class CourseControllerTest {
                 .thenReturn(updated);
 
         mockMvc.perform(patch("/api/courses/{courseId}", courseId)
-                        .param("userId", userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Advanced\"}")
-)
+                .param("userId", userId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Advanced\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Advanced"));
     }
@@ -115,8 +110,7 @@ class CourseControllerTest {
         doNothing().when(courseUseCase).deleteCourse(userId, courseId);
 
         mockMvc.perform(delete("/api/courses/{courseId}", courseId)
-                        .param("userId", userId.toString())
-)
+                .param("userId", userId.toString()))
                 .andExpect(status().isOk());
     }
 }

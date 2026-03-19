@@ -23,6 +23,11 @@ public class NoopStorageService implements StorageService {
     }
 
     @Override
+    public byte[] download(String storageKey) {
+        throw new UnsupportedOperationException("Storage provider is NOOP in this environment");
+    }
+
+    @Override
     public void delete(String storageKey) {
         // best effort no-op
     }

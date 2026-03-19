@@ -1,6 +1,5 @@
 package com.knowted.KnowtedBackend.application.usecase;
 
-import com.knowted.KnowtedBackend.domain.entity.Course;
 import com.knowted.KnowtedBackend.domain.entity.CourseDocument;
 import com.knowted.KnowtedBackend.domain.entity.StudyAid;
 import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseDocumentRepository;
@@ -17,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

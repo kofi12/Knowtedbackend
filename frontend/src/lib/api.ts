@@ -67,6 +67,24 @@ export interface DownloadUrlResponse {
   expiresAt: string;
 }
 
+export interface FlashcardResponseDto {
+  flashcardId: number;
+  frontText: string;
+  backText: string;
+  orderIndex: number;
+  createdAt: string;
+}
+
+export interface FlashcardDeckResponseDto {
+  deckId: string;
+  courseId: string;
+  documentId: string | null;
+  title: string;
+  generationStatus: string;
+  createdAt: string;
+  flashcards: FlashcardResponseDto[];
+}
+
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
 export function hasStoredToken(): boolean {
@@ -208,4 +226,127 @@ export async function getDocumentPresignedUrl(documentId: string, expirySeconds 
     expirySeconds: String(expirySeconds),
   });
   return apiFetch<DownloadUrlResponse>(`/api/documents/${documentId}/presigned-url?${params.toString()}`);
+}
+
+// ── Document Bank ──
+
+export interface DocumentBankItemDto {
+  documentId: string;
+  originalFilename: string;
+  contentType: string;
+  fileSizeBytes: number;
+  uploadedAt: string;
+  courseId: string;
+  courseName: string;
+}
+
+export async function fetchAllDocuments(search?: string, courseId?: string): Promise<DocumentBankItemDto[]> {
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (courseId) params.set('courseId', courseId);
+  const query = params.toString();
+  return apiFetch<DocumentBankItemDto[]>(`/api/documents${query ? `?${query}` : ''}`);
+}
+
+// ── Flashcards ──
+
+export async function generateFlashcards(courseId: string, documentId: string, title?: string): Promise<FlashcardDeckResponseDto> {
+  const formData = new FormData();
+  formData.append('documentId', documentId);
+  if (title) formData.append('title', title);
+  return apiFetch<FlashcardDeckResponseDto>(`/api/courses/${courseId}/flashcards/generate`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function listFlashcardDecks(courseId: string): Promise<FlashcardDeckResponseDto[]> {
+  return apiFetch<FlashcardDeckResponseDto[]>(`/api/courses/${courseId}/flashcards`);
+}
+
+export async function getFlashcardDeck(deckId: string): Promise<FlashcardDeckResponseDto> {
+  return apiFetch<FlashcardDeckResponseDto>(`/api/flashcards/decks/${deckId}`);
+}
+
+export async function deleteFlashcardDeck(deckId: string): Promise<void> {
+  return apiFetch<void>(`/api/flashcards/decks/${deckId}`, { method: 'DELETE' });
+}
+
+// ── Quizzes ──
+
+export interface QuestionOptionDto {
+  optionId: number;
+  optionText: string;
+  isCorrect: boolean;
+  orderIndex: number;
+}
+
+export interface QuizQuestionDto {
+  questionId: number;
+  questionText: string;
+  questionType: string;
+  orderIndex: number;
+  options: QuestionOptionDto[];
+}
+
+export interface QuizResponseDto {
+  quizId: string;
+  courseId: string;
+  documentId: string | null;
+  title: string;
+  generationStatus: string;
+  questionType: string;
+  createdAt: string;
+  questions: QuizQuestionDto[];
+}
+
+export interface AttemptAnswerDto {
+  questionId: number;
+  selectedOptionId: number | null;
+  questionTextSnapshot: string;
+  selectedOptionTextSnapshot: string | null;
+  isCorrect: boolean | null;
+}
+
+export interface QuizAttemptResponseDto {
+  attemptId: number;
+  quizId: string;
+  startedAt: string;
+  completedAt: string | null;
+  score: number | null;
+  totalPoints: number | null;
+  answers: AttemptAnswerDto[];
+}
+
+export async function generateQuiz(courseId: string, documentId: string, questionType: string, title?: string): Promise<QuizResponseDto> {
+  const params = new URLSearchParams();
+  params.append('documentId', documentId);
+  params.append('questionType', questionType);
+  if (title) params.append('title', title);
+  return apiFetch<QuizResponseDto>(`/api/courses/${courseId}/quizzes/generate?${params.toString()}`, {
+    method: 'POST',
+  });
+}
+
+export async function listQuizzes(courseId: string): Promise<QuizResponseDto[]> {
+  return apiFetch<QuizResponseDto[]>(`/api/courses/${courseId}/quizzes`);
+}
+
+export async function getQuiz(quizId: string): Promise<QuizResponseDto> {
+  return apiFetch<QuizResponseDto>(`/api/quizzes/${quizId}`);
+}
+
+export async function submitQuizAttempt(quizId: string, answers: Record<number, number[]>): Promise<QuizAttemptResponseDto> {
+  return apiFetch<QuizAttemptResponseDto>(`/api/quizzes/${quizId}/attempts`, {
+    method: 'POST',
+    body: JSON.stringify({ answers }),
+  });
+}
+
+export async function listQuizAttempts(quizId: string): Promise<QuizAttemptResponseDto[]> {
+  return apiFetch<QuizAttemptResponseDto[]>(`/api/quizzes/${quizId}/attempts`);
+}
+
+export async function deleteQuiz(quizId: string): Promise<void> {
+  return apiFetch<void>(`/api/quizzes/${quizId}`, { method: 'DELETE' });
 }
