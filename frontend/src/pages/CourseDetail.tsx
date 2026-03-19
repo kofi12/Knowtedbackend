@@ -100,9 +100,15 @@ export function CourseDetail() {
   const handleAidClick = (aid: typeof aids[0]) => {
     if (aid.type === 'flashcards') {
       setFlashcardViewerOpen(true);
-    } else {
-      console.log('Opening aid:', aid);
+      return;
     }
+
+    if (aid.type === 'quiz') {
+      navigate(`/course/${courseId}/quiz/${aid.id}`);
+      return;
+    }
+
+    console.log('Opening aid:', aid);
   };
 
   const handleEditCourseSave = async (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {

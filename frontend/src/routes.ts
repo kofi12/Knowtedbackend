@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { CourseDetail } from './pages/CourseDetail';
 import { Auth } from './pages/Auth';
 import { Profile } from './pages/Profile';
+import { QuizSession } from './pages/QuizSession';
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
       {
         path: 'course/:courseId',
         Component: CourseDetail,
+      },
+      {
+        path: 'course/:courseId/quiz/:aidId',
+        Component: QuizSession,
       },
       {
         path: 'profile',

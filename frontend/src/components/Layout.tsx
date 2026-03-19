@@ -28,7 +28,7 @@ function LayoutContent() {
       return { title: 'Dashboard' };
     }
 
-    const courseMatch = location.pathname.match(/^\/course\/(.+)$/);
+    const courseMatch = location.pathname.match(/^\/course\/([^/]+)/);
     if (courseMatch) {
       const courseId = courseMatch[1];
       const course = courses.find(c => c.id === courseId);
