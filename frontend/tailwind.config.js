@@ -32,7 +32,17 @@ export default {
         },
 
         border: "hsl(var(--border))",
-      },
+
+         animation: {
+            'spin-slow': 'spin 10s linear infinite',
+            'shine': 'shine 4s linear infinite',
+          },
+          keyframes: {
+            shine: {
+              '0%': { left: '-200%' },
+              '100%': { left: '200%' },
+            },
+         },
     },
   },
   plugins: [],
