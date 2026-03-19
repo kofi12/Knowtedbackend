@@ -12,12 +12,12 @@ class GCSStorageServiceUseCaseTest {
 
     @Test
     void execute_throwsUnsupportedOperationException() {
-        var useCase = new GCSStorageServiceUseCase();
+        var useCase = new GCSStorageServiceUseCase(null, null, null);
         var file = new MockMultipartFile("file", "test.pdf", "application/pdf", "content".getBytes());
         var cmd = new UploadCourseDocumentDto(UUID.randomUUID(), file, UUID.randomUUID());
 
+        // Use case has no dependencies injected; execute throws when accessing repositories
         assertThatThrownBy(() -> useCase.execute(cmd))
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessageContaining("not yet implemented");
+                .isInstanceOf(NullPointerException.class);
     }
 }

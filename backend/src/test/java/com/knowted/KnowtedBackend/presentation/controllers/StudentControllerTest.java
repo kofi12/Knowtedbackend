@@ -1,28 +1,28 @@
 package com.knowted.KnowtedBackend.presentation.controllers;
 
-import com.knowted.KnowtedBackend.application.usecase.StudentUseCase;
-import com.knowted.KnowtedBackend.domain.exception.StudentNotFoundException;
-import com.knowted.KnowtedBackend.infrastructure.auth.JwtAuthenticationFilter;
-import com.knowted.KnowtedBackend.infrastructure.auth.OAuth2SuccessHandler;
+import com.knowted.KnowtedBackend.domain.entity.Student;
+import com.knowted.KnowtedBackend.domain.repository.StudentRepository;
 import com.knowted.KnowtedBackend.presentation.dto.StudentResponseDto;
+import com.knowted.KnowtedBackend.presentation.mapper.StudentMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = StudentController.class)
-@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc(addFilters = false)
+@SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 class StudentControllerTest {
 
@@ -30,45 +30,39 @@ class StudentControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private StudentUseCase studentUseCase;
+    private StudentRepository studentRepository;
 
     @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @MockitoBean
-    private OAuth2SuccessHandler oAuth2SuccessHandler;
+    private StudentMapper studentMapper;
 
     @Test
-    void getAllStudents_returnsList() throws Exception {
+    void getCurrentStudent_found_returns200() throws Exception {
         UUID id = UUID.randomUUID();
-        List<StudentResponseDto> dtos = List.of(new StudentResponseDto(id, "u@x.com", "User"));
-        when(studentUseCase.getAllStudents()).thenReturn(dtos);
+        Student student = Student.createFromGoogle("sub", "user@example.com", "Test User");
+        org.springframework.test.util.ReflectionTestUtils.setField(student, "studentId", id);
+        StudentResponseDto dto = new StudentResponseDto(id, "user@example.com", "Test User");
 
-        mockMvc.perform(get("/api/students"))
+        when(studentRepository.findById(id)).thenReturn(Optional.of(student));
+        when(studentMapper.toResponseDto(student)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/me").with(jwt().jwt(jwt -> jwt.subject(id.toString()))))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].email").value("u@x.com"));
+                .andExpect(jsonPath("$.email").value("user@example.com"))
+                .andExpect(jsonPath("$.displayName").value("Test User"));
     }
 
     @Test
-    void getStudentById_found_returns200() throws Exception {
+    void getCurrentStudent_notFound_returns404() throws Exception {
         UUID id = UUID.randomUUID();
-        when(studentUseCase.getStudentById(id))
-                .thenReturn(new StudentResponseDto(id, "u@x.com", "User"));
+        when(studentRepository.findById(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/students/{id}", id))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.studentId").value(id.toString()))
-                .andExpect(jsonPath("$.email").value("u@x.com"));
-    }
-
-    @Test
-    void getStudentById_notFound_returns404() throws Exception {
-        UUID id = UUID.randomUUID();
-        when(studentUseCase.getStudentById(id)).thenThrow(new StudentNotFoundException(id));
-
-        mockMvc.perform(get("/api/students/{id}", id))
+        mockMvc.perform(get("/api/me").with(jwt().jwt(jwt -> jwt.subject(id.toString()))))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getCurrentStudent_invalidSubject_returns400() throws Exception {
+        mockMvc.perform(get("/api/me").with(jwt().jwt(jwt -> jwt.subject("not-a-uuid"))))
+                .andExpect(status().isBadRequest());
     }
 }

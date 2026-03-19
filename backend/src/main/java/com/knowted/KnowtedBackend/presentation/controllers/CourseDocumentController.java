@@ -5,9 +5,6 @@ import com.knowted.KnowtedBackend.presentation.dto.DownloadUrlResponse;
 import com.knowted.KnowtedBackend.presentation.dto.UploadCourseDocumentDto;
 import com.knowted.KnowtedBackend.application.usecase.CourseDocumentUseCase;
 import com.knowted.KnowtedBackend.application.usecase.GCSStorageServiceUseCase;
-import com.knowted.KnowtedBackend.domain.exception.AccessDeniedException;
-import com.knowted.KnowtedBackend.domain.exception.CourseNotFoundException;
-import com.knowted.KnowtedBackend.domain.exception.DocumentNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
@@ -35,8 +31,8 @@ import java.util.UUID;
 @Validated
 public class CourseDocumentController {
 
-    private CourseDocumentUseCase courseDocumentUseCase;
-    private GCSStorageServiceUseCase gcsStorageServiceUseCase;
+    private final CourseDocumentUseCase courseDocumentUseCase;
+    private final GCSStorageServiceUseCase gcsStorageServiceUseCase;
 
     // ────────────────────────────────────────────────
     // GET /api/courses/{courseId}/documents

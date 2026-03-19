@@ -5,7 +5,10 @@ import com.knowted.KnowtedBackend.domain.repository.StudentRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -25,6 +28,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Value("${frontend.redirect-url}")
     private String frontendRedirectUrl;
+    @Autowired
     private StudentRepository studentRepository;
 
     public OAuth2SuccessHandler(JwtUtil jwtUtil) {
@@ -77,6 +81,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     student.getEmail(),
                     student.getDisplayName()
             );
+
+            ResponseCookie tokenCookie = ResponseCookie.from("token", jwt)
+                    .httpOnly(true)
+                    .secure(request.isSecure())
+                    .sameSite("Lax")
+                    .path("/")
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, tokenCookie.toString());
 
             // Redirect to frontend with token in query param
             String targetUrl = frontendRedirectUrl + "?token=" + jwt;

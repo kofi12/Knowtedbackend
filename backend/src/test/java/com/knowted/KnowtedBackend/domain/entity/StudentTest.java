@@ -2,8 +2,6 @@ package com.knowted.KnowtedBackend.domain.entity;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StudentTest {

@@ -1,5 +1,5 @@
 import { Clock, FileText, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { Course } from '../lib/mockData';
 import { Progress } from './ui/progress';
 

@@ -3,6 +3,8 @@ package com.knowted.KnowtedBackend.infrastructure.auth;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtUtilTest {
@@ -19,20 +21,28 @@ class JwtUtilTest {
 
     @Test
     void generateToken_producesValidToken() {
-        String token = jwtUtil.generateToken("user@example.com");
+        String token = jwtUtil.generateToken(
+                UUID.randomUUID(),              // dummy studentId
+                "user@example.com",             // dummy email
+                "Test User"                     // dummy display name
+        );
         assertThat(token).isNotBlank();
     }
 
     @Test
     void getSubject_extractsSubjectFromToken() {
-        String subject = "user@example.com";
-        String token = jwtUtil.generateToken(subject);
-        assertThat(jwtUtil.getSubject(token)).isEqualTo(subject);
+        UUID studentId = UUID.randomUUID();
+        String token = jwtUtil.generateToken(studentId, "test@example.com", "Test Subject");
+        assertThat(jwtUtil.getSubject(token)).isEqualTo(studentId.toString());
     }
 
     @Test
     void validateToken_validToken_returnsTrue() {
-        String token = jwtUtil.generateToken("test");
+        String token = jwtUtil.generateToken(
+                UUID.randomUUID(),
+                "test@example.com",
+                "Test"
+        );
         assertThat(jwtUtil.validateToken(token)).isTrue();
     }
 

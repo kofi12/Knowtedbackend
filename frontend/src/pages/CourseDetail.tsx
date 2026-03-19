@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload, Pencil, Trash2 } from 'lucide-react';
-import { mockMaterials, mockAids, Material } from '../lib/mockData';
+import { mockAids, Material } from '../lib/mockData';
 import { useCourses } from '../lib/CoursesContext';
 import { GenerateModal } from '../components/GenerateModal';
 import { FlashcardViewer } from '../components/FlashcardViewer';
@@ -13,6 +13,13 @@ import { MaterialItem } from '../components/course/MaterialItem';
 import { AidCard } from '../components/course/AidCard';
 import { GenerateAidButton } from '../components/course/GenerateAidButton';
 import { Button } from '../components/ui/button';
+import {
+  CourseDocumentResponseDto,
+  deleteDocument,
+  fetchCourseDocuments,
+  getDocumentPresignedUrl,
+  uploadCourseDocument,
+} from '../lib/api';
 
 type AidType = 'quiz' | 'flashcards' | 'guide' | 'schedule';
 
@@ -32,16 +39,63 @@ export function CourseDetail() {
 
   const [deleteMaterialModalOpen, setDeleteMaterialModalOpen] = useState(false);
   const [materialToDelete, setMaterialToDelete] = useState<Material | null>(null);
+  const [isDeletingMaterial, setIsDeletingMaterial] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFilesPreview, setSelectedFilesPreview] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const [materialError, setMaterialError] = useState<string | null>(null);
 
   const course = courses.find(c => c.id === courseId);
-  const [courseMaterials, setCourseMaterials] = useState(
-    mockMaterials.filter(m => m.courseId === courseId)
-  );
-  const aids = mockAids.filter(a => a.courseId === courseId);
+  const [courseMaterials, setCourseMaterials] = useState<Material[]>([]);
+  const aids: typeof mockAids = [];
+
+  const inferMaterialType = (contentType: string, fileName: string): Material['type'] => {
+    const lowerType = (contentType || '').toLowerCase();
+    const lowerName = fileName.toLowerCase();
+    if (lowerType.includes('pdf') || lowerName.endsWith('.pdf')) return 'pdf';
+    if (lowerType.startsWith('video/')) return 'video';
+    if (lowerType.includes('word') || lowerType.includes('document') || lowerName.endsWith('.doc') || lowerName.endsWith('.docx')) {
+      return 'doc';
+    }
+    return 'slides';
+  };
+
+  const formatUploadedAt = (isoDate: string): string => {
+    const date = new Date(isoDate);
+    if (Number.isNaN(date.getTime())) return 'Unknown date';
+    return date.toLocaleDateString();
+  };
+
+  const mapDocumentToMaterial = (document: CourseDocumentResponseDto): Material => ({
+    id: document.documentId,
+    courseId: document.courseId,
+    name: document.originalFilename,
+    type: inferMaterialType(document.contentType, document.originalFilename),
+    uploadedAt: formatUploadedAt(document.uploadedAt),
+  });
+
+  const loadCourseMaterials = async () => {
+    if (!courseId) return;
+    setLoadingMaterials(true);
+    setMaterialError(null);
+    try {
+      const documents = await fetchCourseDocuments(courseId);
+      setCourseMaterials(documents.map(mapDocumentToMaterial));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load course documents.';
+      setMaterialError(message);
+      setCourseMaterials([]);
+    } finally {
+      setLoadingMaterials(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCourseMaterials();
+  }, [courseId]);
 
   if (!course) {
     return (
@@ -60,16 +114,26 @@ export function CourseDetail() {
     }
   };
 
-  const processFiles = (files: FileList | null) => {
-    if (files && files.length > 0) {
-      const fileNames = Array.from(files).map(f => f.name);
-      setSelectedFilesPreview(fileNames);
-      console.log('Files selected (not uploaded):', fileNames);
+  const processFiles = async (files: FileList | null) => {
+    if (!courseId || !files || files.length === 0) return;
+    const selectedFiles = Array.from(files);
+    setSelectedFilesPreview(selectedFiles.map((file) => file.name));
+    setIsUploading(true);
+    setMaterialError(null);
+    try {
+      await Promise.all(selectedFiles.map((file) => uploadCourseDocument(courseId, file)));
+      await loadCourseMaterials();
+      setSelectedFilesPreview([]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upload one or more files.';
+      setMaterialError(message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    processFiles(e.target.files);
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await processFiles(e.target.files);
     e.target.value = '';
   };
 
@@ -85,11 +149,11 @@ export function CourseDetail() {
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-    processFiles(e.dataTransfer.files);
+    await processFiles(e.dataTransfer.files);
   };
 
   const handleGenerate = (type: AidType) => {
@@ -112,13 +176,25 @@ export function CourseDetail() {
   };
 
   const handleEditCourseSave = async (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
-    await updateCourse(id, updates);
+    try {
+      await updateCourse(id, updates);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update course.';
+      alert(message);
+    }
   };
 
   const handleConfirmDeleteCourse = async (id: string) => {
     setIsDeletingCourse(true);
-    await deleteCourse(id);
-    navigate('/');
+    try {
+      await deleteCourse(id);
+      navigate('/');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete course.';
+      alert(message);
+    } finally {
+      setIsDeletingCourse(false);
+    }
   };
 
   const handleDeleteMaterial = (material: Material) => {
@@ -126,10 +202,29 @@ export function CourseDetail() {
     setDeleteMaterialModalOpen(true);
   };
 
-  const handleConfirmDeleteMaterial = (materialId: string) => {
-    setCourseMaterials(prev => prev.filter(m => m.id !== materialId));
-    setDeleteMaterialModalOpen(false);
-    setMaterialToDelete(null);
+  const handleViewMaterial = async (material: Material) => {
+    try {
+      const url = await getDocumentPresignedUrl(material.id);
+      window.open(url.presignedUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to open document.';
+      setMaterialError(message);
+    }
+  };
+
+  const handleConfirmDeleteMaterial = async (materialId: string) => {
+    setIsDeletingMaterial(true);
+    try {
+      await deleteDocument(materialId);
+      setCourseMaterials(prev => prev.filter(m => m.id !== materialId));
+      setDeleteMaterialModalOpen(false);
+      setMaterialToDelete(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete document.';
+      setMaterialError(message);
+    } finally {
+      setIsDeletingMaterial(false);
+    }
   };
 
   const tabs = [
@@ -160,7 +255,7 @@ export function CourseDetail() {
 
           {selectedFilesPreview.length > 0 && (
             <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm font-medium mb-2">Selected files (not saved yet):</p>
+              <p className="text-sm font-medium mb-2">Selected files:</p>
               <ul className="text-sm space-y-1">
                 {selectedFilesPreview.map((name, i) => (
                   <li key={i} className="flex items-center gap-2">
@@ -169,10 +264,18 @@ export function CourseDetail() {
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-muted-foreground mt-2 italic">
-                Upload not implemented yet — files are only selected locally.
-              </p>
+              {isUploading && (
+                <p className="text-xs text-muted-foreground mt-2 italic">Uploading...</p>
+              )}
             </div>
+          )}
+
+          {materialError && (
+            <p className="text-sm text-destructive">{materialError}</p>
+          )}
+
+          {loadingMaterials && (
+            <p className="text-sm text-muted-foreground">Loading materials...</p>
           )}
 
           {courseMaterials.length > 0 && (
@@ -183,7 +286,7 @@ export function CourseDetail() {
                   <MaterialItem
                     key={material.id}
                     material={material}
-                    onView={(m) => console.log('View material:', m)}
+                    onView={handleViewMaterial}
                     onDelete={handleDeleteMaterial}
                   />
                 ))}
@@ -245,11 +348,11 @@ export function CourseDetail() {
         </div>
       </div>
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as 'materials' | 'aids')} />
-      <GenerateModal isOpen={generateModalOpen} onClose={() => setGenerateModalOpen(false)} courseId={courseId!} type={generateType} />
+      <GenerateModal isOpen={generateModalOpen} onClose={() => setGenerateModalOpen(false)} courseId={courseId!} type={generateType} materials={courseMaterials} />
       <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => setFlashcardViewerOpen(false)} />
       <EditCourseModal isOpen={editCourseModalOpen} onClose={() => setEditCourseModalOpen(false)} course={course} onSave={handleEditCourseSave} />
       <DeleteCourseModal isOpen={deleteCourseModalOpen} onClose={() => setDeleteCourseModalOpen(false)} course={course} onConfirmDelete={handleConfirmDeleteCourse} isDeleting={isDeletingCourse} />
-      <DeleteMaterialModal isOpen={deleteMaterialModalOpen} onClose={() => { setDeleteMaterialModalOpen(false); setMaterialToDelete(null); }} material={materialToDelete} onConfirmDelete={handleConfirmDeleteMaterial} />
+      <DeleteMaterialModal isOpen={deleteMaterialModalOpen} onClose={() => { setDeleteMaterialModalOpen(false); setMaterialToDelete(null); }} material={materialToDelete} onConfirmDelete={handleConfirmDeleteMaterial} isDeleting={isDeletingMaterial} />
       <input
         type="file"
         ref={fileInputRef}
