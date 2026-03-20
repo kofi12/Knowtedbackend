@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload, Pencil, Trash2 } from 'lucide-react';
-import { mockAids, Material } from '../lib/mockData';
+import { Aid, Material } from '../lib/mockData';
 import { useCourses } from '../lib/CoursesContext';
 import { GenerateModal } from '../components/GenerateModal';
 import { FlashcardViewer } from '../components/FlashcardViewer';
+import { QuizViewer } from '../components/QuizViewer';
 import { EditCourseModal } from '../components/EditCourseModal';
 import { DeleteCourseModal } from '../components/DeleteCourseModal';
 import { DeleteMaterialModal } from '../components/course/DeleteMaterialModal';
@@ -15,9 +16,13 @@ import { GenerateAidButton } from '../components/course/GenerateAidButton';
 import { Button } from '../components/ui/button';
 import {
   CourseDocumentResponseDto,
+  FlashcardDeckResponseDto,
+  QuizResponseDto,
   deleteDocument,
   fetchCourseDocuments,
   getDocumentPresignedUrl,
+  listFlashcardDecks,
+  listQuizzes,
   uploadCourseDocument,
 } from '../lib/api';
 
@@ -32,6 +37,7 @@ export function CourseDetail() {
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [generateType, setGenerateType] = useState<AidType>('quiz');
   const [flashcardViewerOpen, setFlashcardViewerOpen] = useState(false);
+  const [quizViewerOpen, setQuizViewerOpen] = useState(false);
 
   const [editCourseModalOpen, setEditCourseModalOpen] = useState(false);
   const [deleteCourseModalOpen, setDeleteCourseModalOpen] = useState(false);
@@ -50,7 +56,15 @@ export function CourseDetail() {
 
   const course = courses.find(c => c.id === courseId);
   const [courseMaterials, setCourseMaterials] = useState<Material[]>([]);
-  const aids: typeof mockAids = [];
+  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([]);
+  const [flashcardDecks, setFlashcardDecks] = useState<FlashcardDeckResponseDto[]>([]);
+  const [selectedDeck, setSelectedDeck] = useState<FlashcardDeckResponseDto | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizResponseDto | null>(null);
+
+  const aids: Aid[] = [
+    ...quizzes.map((q: QuizResponseDto) => ({ id: q.quizId, courseId: q.courseId, type: 'quiz' as const, name: q.title, createdAt: new Date(q.createdAt).toLocaleDateString() })),
+    ...flashcardDecks.map((d: FlashcardDeckResponseDto) => ({ id: d.deckId, courseId: d.courseId, type: 'flashcards' as const, name: d.title, createdAt: new Date(d.createdAt).toLocaleDateString() })),
+  ];
 
   const inferMaterialType = (contentType: string, fileName: string): Material['type'] => {
     const lowerType = (contentType || '').toLowerCase();
@@ -93,8 +107,23 @@ export function CourseDetail() {
     }
   };
 
+  const loadAids = async () => {
+    if (!courseId) return;
+    try {
+      const [fetchedQuizzes, fetchedDecks] = await Promise.all([
+        listQuizzes(courseId),
+        listFlashcardDecks(courseId),
+      ]);
+      setQuizzes(fetchedQuizzes);
+      setFlashcardDecks(fetchedDecks);
+    } catch (err) {
+      console.error('Failed to load study aids:', err);
+    }
+  };
+
   useEffect(() => {
     loadCourseMaterials();
+    loadAids();
   }, [courseId]);
 
   if (!course) {
@@ -161,18 +190,20 @@ export function CourseDetail() {
     setGenerateModalOpen(true);
   };
 
-  const handleAidClick = (aid: typeof aids[0]) => {
+  const handleAidClick = (aid: Aid) => {
     if (aid.type === 'flashcards') {
+      const deck = flashcardDecks.find(d => d.deckId === aid.id) ?? null;
+      setSelectedDeck(deck);
       setFlashcardViewerOpen(true);
       return;
     }
 
     if (aid.type === 'quiz') {
-      navigate(`/course/${courseId}/quiz/${aid.id}`);
+      const quiz = quizzes.find((q: QuizResponseDto) => q.quizId === aid.id) ?? null;
+      setSelectedQuiz(quiz);
+      setQuizViewerOpen(true);
       return;
     }
-
-    console.log('Opening aid:', aid);
   };
 
   const handleEditCourseSave = async (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
@@ -348,8 +379,17 @@ export function CourseDetail() {
         </div>
       </div>
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as 'materials' | 'aids')} />
-      <GenerateModal isOpen={generateModalOpen} onClose={() => setGenerateModalOpen(false)} courseId={courseId!} type={generateType} materials={courseMaterials} />
-      <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => setFlashcardViewerOpen(false)} />
+      <GenerateModal
+        isOpen={generateModalOpen}
+        onClose={() => setGenerateModalOpen(false)}
+        courseId={courseId!}
+        type={generateType}
+        materials={courseMaterials}
+        onQuizGenerated={(quiz: QuizResponseDto) => setQuizzes((prev: QuizResponseDto[]) => [quiz, ...prev])}
+        onFlashcardsGenerated={(deck: FlashcardDeckResponseDto) => setFlashcardDecks((prev: FlashcardDeckResponseDto[]) => [deck, ...prev])}
+      />
+      <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => { setFlashcardViewerOpen(false); setSelectedDeck(null); }} deck={selectedDeck} />
+      <QuizViewer isOpen={quizViewerOpen} onClose={() => { setQuizViewerOpen(false); setSelectedQuiz(null); }} quiz={selectedQuiz} />
       <EditCourseModal isOpen={editCourseModalOpen} onClose={() => setEditCourseModalOpen(false)} course={course} onSave={handleEditCourseSave} />
       <DeleteCourseModal isOpen={deleteCourseModalOpen} onClose={() => setDeleteCourseModalOpen(false)} course={course} onConfirmDelete={handleConfirmDeleteCourse} isDeleting={isDeletingCourse} />
       <DeleteMaterialModal isOpen={deleteMaterialModalOpen} onClose={() => { setDeleteMaterialModalOpen(false); setMaterialToDelete(null); }} material={materialToDelete} onConfirmDelete={handleConfirmDeleteMaterial} isDeleting={isDeletingMaterial} />
