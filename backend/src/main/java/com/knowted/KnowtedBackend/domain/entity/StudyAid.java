@@ -20,7 +20,7 @@ public class StudyAid {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id")
     private Course course;
 
@@ -45,6 +45,20 @@ public class StudyAid {
     private Instant updatedAt;
 
     protected StudyAid() {}
+
+    // factory method to create a new study aid for flashcard generation
+    public static StudyAid create(UUID userId, Course course, UUID documentId, short typeId, String title) {
+        StudyAid aid = new StudyAid();
+        aid.userId = userId;
+        aid.course = course;
+        aid.documentId = documentId;
+        aid.typeId = typeId;
+        aid.title = title;
+        aid.generationStatus = "PENDING";
+        return aid;
+    }
+
+    public void setGenerationStatus(String generationStatus) { this.generationStatus = generationStatus; }
 
     public UUID getStudyAidId() { return studyAidId; }
     public UUID getUserId() { return userId; }
