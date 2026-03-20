@@ -10,7 +10,7 @@ services:
     volumes:
       - knowted_db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-knowted} -d $${POSTGRES_DB:-knowted_db}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-knowted} -d $${POSTGRES_DB:-knowted_db}" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -32,6 +32,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - GCP_BUCKET_NAME=${GCP_BUCKET_NAME}
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcs-credentials.json
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL}
     volumes:
       - ${GCS_CREDENTIALS_FILE:-./backend/gcs-credentials.json}:/app/gcs-credentials.json:ro
     depends_on:
