@@ -1,22 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { mockFlashcards, Flashcard } from '../lib/mockData';
 import { useTheme } from './ThemeProvider';
+import { FlashcardDeckResponseDto } from '../lib/api';
 
 interface FlashcardViewerProps {
   isOpen: boolean;
   onClose: () => void;
+  deck?: FlashcardDeckResponseDto | null;
 }
 
-export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
+interface CardState {
+  known: boolean;
+}
+
+export function FlashcardViewer({ isOpen, onClose, deck }: FlashcardViewerProps) {
   const { theme } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [cards, setCards] = useState<Flashcard[]>(mockFlashcards);
+  const [cardStates, setCardStates] = useState<CardState[]>([]);
 
-  if (!isOpen) return null;
+  const cards = deck?.flashcards ?? [];
+
+  useEffect(() => {
+    if (deck) {
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      setCardStates(deck.flashcards.map(() => ({ known: false })));
+    }
+  }, [deck?.deckId]);
+
+  if (!isOpen || !deck || cards.length === 0) return null;
 
   const currentCard = cards[currentIndex];
+  const currentState = cardStates[currentIndex] ?? { known: false };
 
   const handleNext = () => {
     if (currentIndex < cards.length - 1) {
@@ -37,18 +53,18 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
   };
 
   const handleMarkKnown = () => {
-    setCards(prev =>
-      prev.map((card, idx) =>
-        idx === currentIndex ? { ...card, known: !card.known } : card
+    setCardStates(prev =>
+      prev.map((s, idx) =>
+        idx === currentIndex ? { ...s, known: !s.known } : s
       )
     );
   };
 
-  const knownCount = cards.filter(c => c.known).length;
+  const knownCount = cardStates.filter(s => s.known).length;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4">
-      <div 
+      <div
         className="border rounded-lg md:rounded-xl shadow-lg max-w-4xl w-full p-4 md:p-6 space-y-4 md:space-y-6"
         style={{
           backgroundColor: theme === 'dark' ? 'hsl(217.2 32.6% 17.5%)' : 'white',
@@ -59,9 +75,9 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg md:text-xl font-semibold">Flashcards</h2>
+            <h2 className="text-lg md:text-xl font-semibold">{deck.title}</h2>
             <p className="text-xs md:text-sm text-muted-foreground mt-1">
-              Card {currentIndex + 1} of {cards.length} • {knownCount} marked as known
+              Card {currentIndex + 1} of {cards.length} &bull; {knownCount} marked as known
             </p>
           </div>
           <button
@@ -107,9 +123,9 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
                 Question
               </div>
               <div className="text-lg md:text-2xl text-center font-medium">
-                {currentCard.question}
+                {currentCard.frontText}
               </div>
-              <div 
+              <div
                 className="absolute bottom-4 md:bottom-6 text-xs"
                 style={{
                   color: theme === 'dark' ? 'hsl(210 40% 96%)' : 'hsl(0 0% 60%)',
@@ -134,9 +150,9 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
                 Answer
               </div>
               <div className="text-base md:text-lg text-center leading-relaxed">
-                {currentCard.answer}
+                {currentCard.backText}
               </div>
-              <div 
+              <div
                 className="absolute bottom-4 md:bottom-6 text-xs"
                 style={{
                   color: theme === 'dark' ? 'hsl(210 40% 96%)' : 'hsl(0 0% 60%)',
@@ -174,14 +190,14 @@ export function FlashcardViewer({ isOpen, onClose }: FlashcardViewerProps) {
             <button
               onClick={handleMarkKnown}
               className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-colors text-sm ${
-                currentCard.known
+                currentState.known
                   ? 'bg-accent text-accent-foreground'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
               <Check className="w-4 h-4" />
-              <span className="hidden sm:inline">{currentCard.known ? 'Known' : 'Mark Known'}</span>
-              <span className="sm:hidden">✓</span>
+              <span className="hidden sm:inline">{currentState.known ? 'Known' : 'Mark Known'}</span>
+              <span className="sm:hidden">{currentState.known ? 'Known' : 'Mark'}</span>
             </button>
           </div>
 

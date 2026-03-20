@@ -71,6 +71,15 @@ public class GCSStorageService implements StorageService {
     }
 
     @Override
+    public byte[] download(String storageKey) {
+        Blob blob = getGoogleStorage().get(BlobId.of(bucketName, storageKey));
+        if (blob == null) {
+            throw new RuntimeException("GCS object not found: " + bucketName + "/" + storageKey);
+        }
+        return blob.getContent();
+    }
+
+    @Override
     public void delete(String storageKey) {
 
         BlobId blobId = BlobId.of(bucketName, storageKey);

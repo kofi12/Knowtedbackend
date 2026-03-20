@@ -28,3 +28,8 @@ jwt:
 
 frontend:
   redirect-url: http://localhost:5173/dashboard?loggedIn=true
+
+openai:
+  api:
+    key: test-dummy-key
+  model: gpt-4o-mini
