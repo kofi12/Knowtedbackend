@@ -21,4 +21,13 @@ public interface JPACourseDocumentRepository extends JpaRepository<CourseDocumen
 
     //needed for course deletion
     List<CourseDocument> findByCourse_CourseId(UUID courseId);
+
+    // for document bank: all user docs (no limit)
+    List<CourseDocument> findByUserIdOrderByUploadedAtDesc(UUID userId);
+
+    // for document bank: search by filename
+    List<CourseDocument> findByUserIdAndOriginalFilenameContainingIgnoreCaseOrderByUploadedAtDesc(UUID userId, String filename);
+
+    // for document bank: filter by course
+    List<CourseDocument> findByUserIdAndCourse_CourseIdOrderByUploadedAtDesc(UUID userId, UUID courseId);
 }

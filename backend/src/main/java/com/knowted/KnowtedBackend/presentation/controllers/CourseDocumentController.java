@@ -1,6 +1,7 @@
 package com.knowted.KnowtedBackend.presentation.controllers;
 
 import com.knowted.KnowtedBackend.presentation.dto.CourseDocumentResponseDto;
+import com.knowted.KnowtedBackend.presentation.dto.DocumentBankItemDto;
 import com.knowted.KnowtedBackend.presentation.dto.DownloadUrlResponse;
 import com.knowted.KnowtedBackend.presentation.dto.UploadCourseDocumentDto;
 import com.knowted.KnowtedBackend.application.usecase.CourseDocumentUseCase;
@@ -33,6 +34,24 @@ public class CourseDocumentController {
 
     private final CourseDocumentUseCase courseDocumentUseCase;
     private final GCSStorageServiceUseCase gcsStorageServiceUseCase;
+
+    // ────────────────────────────────────────────────
+    // GET /api/documents  (Document Bank – all user documents)
+    // ────────────────────────────────────────────────
+
+    @Operation(summary = "List all user documents", description = "Returns all documents across every course for the authenticated user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Documents retrieved")
+    })
+    @GetMapping("/documents")
+    public List<DocumentBankItemDto> listAllDocuments(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID courseId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return courseDocumentUseCase.listAllUserDocuments(userId, search, courseId);
+    }
 
     // ────────────────────────────────────────────────
     // GET /api/courses/{courseId}/documents
