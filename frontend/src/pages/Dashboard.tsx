@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { useCourses } from '../lib/CoursesContext';
 import { DocumentDto, fetchDashboardRecent, fetchDashboardSummary, DashboardSummaryDto, getUserIdFromToken } from '../lib/api';
@@ -8,6 +8,7 @@ export function Dashboard() {
   const { courses, loading } = useCourses();
   const [summary, setSummary] = useState<DashboardSummaryDto | null>(null);
   const [recentDocuments, setRecentDocuments] = useState<DocumentDto[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const userId = getUserIdFromToken();
@@ -76,12 +77,38 @@ export function Dashboard() {
 
       {/* Courses grid */}
       <div>
-        <h2 className="text-lg md:text-xl font-semibold mb-4">Your Courses</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {courses.map(course => (
-            <CourseCard key={course.id} course={course} />
-          ))}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="text-lg md:text-xl font-semibold">Your Courses</h2>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-muted-foreground"
+            />
+          </div>
         </div>
+        {(() => {
+          const filtered = courses.filter(course =>
+            course.name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+          if (filtered.length === 0 && searchQuery) {
+            return (
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No courses matching "{searchQuery}"
+              </p>
+            );
+          }
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              {filtered.map(course => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Recent documents */}
