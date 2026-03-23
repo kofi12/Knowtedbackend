@@ -7,6 +7,7 @@ public interface StorageService {
 
     public String upload(InputStream contentStream, String fileName, String contentType);
     public String getPresignedUrl(String storageKey, Duration expiration);
+    byte[] download(String storageKey);
     void delete(String storageKey);
     boolean exists(String storageKey);
 }

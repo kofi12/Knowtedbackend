@@ -51,6 +51,10 @@ dependencies {
 	implementation 'jakarta.validation:jakarta.validation-api:3.1.0'
 	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'  // reference implementation
 
+	// Apache Tika (for text extraction including PDFs)
+	implementation 'org.apache.tika:tika-core:2.9.2'
+	implementation 'org.apache.tika:tika-parser-pdf-module:2.9.2'
+
 	// Lombok (for @RequiredArgsConstructor)
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'

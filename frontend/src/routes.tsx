@@ -9,7 +9,9 @@ import { useAuth } from "./context/AuthContext";
 import Root from './components/Root';
 
 function ProtectedRoute() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
+
+  if (!isInitialized) return null;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

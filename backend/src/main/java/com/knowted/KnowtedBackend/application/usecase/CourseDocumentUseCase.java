@@ -3,6 +3,7 @@ package com.knowted.KnowtedBackend.application.usecase;
 import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseDocumentRepository;
 import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseRepository;
 import com.knowted.KnowtedBackend.presentation.dto.CourseDocumentResponseDto;
+import com.knowted.KnowtedBackend.presentation.dto.DocumentBankItemDto;
 import com.knowted.KnowtedBackend.presentation.dto.DownloadUrlResponse;
 import com.knowted.KnowtedBackend.domain.entity.Course;
 import com.knowted.KnowtedBackend.domain.entity.CourseDocument;
@@ -121,9 +122,44 @@ public class CourseDocumentUseCase {
                 courseRepository.save(course);
         }
 
+        /**
+         * GET /api/documents
+         * Lists all documents for a user across all courses (Document Bank)
+         */
+        public List<DocumentBankItemDto> listAllUserDocuments(
+                        UUID userId,
+                        String search,
+                        UUID courseId) {
+
+                List<CourseDocument> docs;
+
+                if (search != null && !search.isBlank()) {
+                        docs = documentRepository.findByUserIdAndOriginalFilenameContainingIgnoreCaseOrderByUploadedAtDesc(userId, search.trim());
+                } else if (courseId != null) {
+                        docs = documentRepository.findByUserIdAndCourse_CourseIdOrderByUploadedAtDesc(userId, courseId);
+                } else {
+                        docs = documentRepository.findByUserIdOrderByUploadedAtDesc(userId);
+                }
+
+                return docs.stream()
+                                .map(this::toBankItem)
+                                .collect(Collectors.toList());
+        }
+
         // ────────────────────────────────────────────────
         // Internal helpers
         // ────────────────────────────────────────────────
+
+        private DocumentBankItemDto toBankItem(CourseDocument doc) {
+                return new DocumentBankItemDto(
+                                doc.getDocumentId(),
+                                doc.getOriginalFilename(),
+                                doc.getContentType(),
+                                doc.getFileSizeBytes(),
+                                doc.getUploadedAt(),
+                                doc.getCourse().getCourseId(),
+                                doc.getCourse().getName());
+        }
 
         private CourseDocumentResponseDto toResponse(CourseDocument doc, boolean includePresignedUrl) {
                 String presignedUrl = includePresignedUrl

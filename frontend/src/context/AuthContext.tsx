@@ -17,6 +17,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   logout: () => void;
 }
 
@@ -36,6 +37,7 @@ const extractUserId = (decoded: any): string | null => {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Clean URL
         navigate(location.pathname, { replace: true });
+        setIsInitialized(true);
         return;
       }
 
@@ -80,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken) {
         processToken(storedToken);
       }
+      setIsInitialized(true);
     };
 
     handleToken();
@@ -94,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user?.id,
+    isInitialized,
     logout,
   };
 
