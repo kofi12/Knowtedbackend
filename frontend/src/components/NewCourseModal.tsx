@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal, ModalFooter } from './ui/Modal';
 import { Input } from './ui/InputField';
-import { Select } from './ui/SelectField';
+import { SelectField as Select } from './ui/SelectField';
 import { Textarea } from './ui/TextareaField';
 import { Button } from './ui/button';
 import { useCourses } from '../lib/CoursesContext';
@@ -61,8 +61,6 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title="Create New Course"
-      // Optional: ensure modal has proper background/foreground
-      className="bg-background text-foreground max-w-lg"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <Input
@@ -73,7 +71,6 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
           onChange={(e) => setCourseName(e.target.value)}
           placeholder="e.g., Introduction to Computer Science"
           required
-          // shadcn Input usually already handles bg-background/foreground via css vars
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -81,7 +78,7 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
             id="semester"
             label="Semester"
             value={semester}
-            onChange={(e) => setSemester(e.target.value as 'Winter' | 'Summer' | 'Fall')}
+            onChange={(value) => setSemester(value as 'Winter' | 'Summer' | 'Fall')}
             options={semesterOptions}
             required
           />
@@ -90,7 +87,7 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
             id="year"
             label="Year"
             value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
+            onChange={(value) => setYear(Number(value))}
             options={yearOptions}
             required
           />
@@ -112,16 +109,13 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
         <ModalFooter>
           <Button
             type="button"
-            variant="outline"  // or "secondary" — outline usually looks better in modals
+            variant="outline"
             onClick={onClose}
           >
             Cancel
           </Button>
 
-          <Button
-            type="submit"
-            // Primary button usually gets bg-primary text-primary-foreground automatically
-          >
+          <Button type="submit">
             Create Course
           </Button>
         </ModalFooter>

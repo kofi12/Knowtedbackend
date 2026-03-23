@@ -10,16 +10,16 @@ import {
   DashboardSummaryDto,
   getUserIdFromToken,
 } from '../lib/api';
+import CountUp from 'react-countup';
+import { motion } from 'framer-motion';
 
 export function Dashboard() {
   const { courses, loading } = useCourses();
 
   const [isNewCourseModalOpen, setIsNewCourseModalOpen] = useState(false);
-
   const [summary, setSummary] = useState<DashboardSummaryDto | null>(null);
   const [recentDocuments, setRecentDocuments] = useState<DocumentDto[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [recentError, setRecentError] = useState<string | null>(null);
 
@@ -36,23 +36,25 @@ export function Dashboard() {
 
     fetchDashboardSummary(userId)
       .then(setSummary)
-      .catch((err) => {
-        console.error("Failed to fetch dashboard summary:", err);
+      .catch(() => {
         setSummaryError("Couldn't load summary stats. Showing data from your local courses instead.");
       });
 
     fetchDashboardRecent(userId, undefined, 5)
       .then((data) => setRecentDocuments(data.recentDocuments ?? []))
-      .catch((err) => {
-        console.error("Failed to fetch recent documents:", err);
+      .catch(() => {
         setRecentError("Couldn't load recent documents.");
         setRecentDocuments([]);
       });
   }, []);
 
   const activeCourses = summary?.activeCourses ?? courses.length;
-  const studyMaterials = summary?.studyMaterials ?? courses.reduce((sum, c) => sum + (c.materialsCount ?? 0), 0);
-  const generatedAids = summary?.generatedAids ?? courses.reduce((sum, c) => sum + (c.aidsCount ?? 0), 0);
+  const studyMaterials =
+    summary?.studyMaterials ??
+    courses.reduce((sum, c) => sum + (c.materialsCount ?? 0), 0);
+  const generatedAids =
+    summary?.generatedAids ??
+    courses.reduce((sum, c) => sum + (c.aidsCount ?? 0), 0);
 
   if (loading) {
     return (
@@ -66,101 +68,97 @@ export function Dashboard() {
     );
   }
 
-  {/* State When Course is Empty*/}
   if (courses.length === 0) {
     return (
       <>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '70vh',
-          textAlign: 'center',
-          width: '100%',
-          padding: '3rem 2rem',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: '2.25rem',
-            fontWeight: 700,
-            marginBottom: '1rem',
-          }}
-        >
-          No Courses Yet
-        </h2>
-
-        <p
-          style={{
-            fontSize: '1.125rem',
-            color: 'var(--muted-foreground, #6b7280)',
-            maxWidth: '480px',
-            width: '100%',
-            marginBottom: '2.5rem',
-            lineHeight: 1.7,
-          }}
-        >
-          Create your first course to unlock personalized study materials,
-          AI-generated flashcards, summaries, quizzes, and more.
-        </p>
-
-        <button
-          onClick={() => {
-            setIsNewCourseModalOpen(true);
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '1rem 2rem',
-            backgroundColor: 'var(--primary, #2563eb)',
-            color: 'var(--primary-foreground, #ffffff)',
-            borderRadius: '0.75rem',
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 4px 24px rgba(37,99,235,0.25)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 32px rgba(37,99,235,0.35)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 24px rgba(37,99,235,0.25)';
-          }}
-        >
-          <Plus style={{ width: '1.5rem', height: '1.5rem' }} strokeWidth={2} />
-          <span>Add Your First Course</span>
-        </button>
-
         <div
           style={{
-            marginTop: '2rem',
             display: 'flex',
-            gap: '2rem',
-            fontSize: '0.875rem',
-            color: 'var(--muted-foreground, #6b7280)',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '70vh',
+            textAlign: 'center',
+            width: '100%',
+            padding: '3rem 2rem',
           }}
         >
-          <span>• Quick setup</span>
-          <span>• Start generating aids instantly</span>
-        </div>
-      </div>
+          <h2
+            style={{
+              fontSize: '2.25rem',
+              fontWeight: 700,
+              marginBottom: '1rem',
+            }}
+          >
+            No Courses Yet
+          </h2>
 
-      <NewCourseModal
-        isOpen={isNewCourseModalOpen}
-        onClose={() => setIsNewCourseModalOpen(false)}
-      />
-    </>
+          <p
+            style={{
+              fontSize: '1.125rem',
+              color: 'var(--muted-foreground, #6b7280)',
+              maxWidth: '480px',
+              width: '100%',
+              marginBottom: '2.5rem',
+              lineHeight: 1.7,
+            }}
+          >
+            Create your first course to unlock personalized study materials,
+            AI-generated flashcards, summaries, quizzes, and more.
+          </p>
+
+          <button
+            onClick={() => setIsNewCourseModalOpen(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              padding: '1rem 2rem',
+              backgroundColor: 'var(--primary, #2563eb)',
+              color: 'var(--primary-foreground, #ffffff)',
+              borderRadius: '0.75rem',
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 24px rgba(37,99,235,0.25)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 24px rgba(37,99,235,0.25)';
+            }}
+          >
+            <Plus style={{ width: '1.5rem', height: '1.5rem' }} strokeWidth={2} />
+            <span>Add Your First Course</span>
+          </button>
+
+          <div
+            style={{
+              marginTop: '2rem',
+              display: 'flex',
+              gap: '2rem',
+              fontSize: '0.875rem',
+              color: 'var(--muted-foreground, #6b7280)',
+            }}
+          >
+            <span>• Quick setup</span>
+            <span>• Start generating aids instantly</span>
+          </div>
+        </div>
+
+        <NewCourseModal
+          isOpen={isNewCourseModalOpen}
+          onClose={() => setIsNewCourseModalOpen(false)}
+        />
+      </>
     );
   }
 
-  {/* For Everything else, theres mastercard*/}
   return (
     <div className="space-y-8 md:space-y-10">
       {(summaryError || recentError) && (
@@ -190,29 +188,36 @@ export function Dashboard() {
           { value: studyMaterials, label: "Study Materials" },
           { value: generatedAids, label: "Generated Aids" },
         ].map((stat, i) => (
-          <div
+          <motion.div
             key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1, duration: 0.5 }}
             className={`
               relative p-5 md:p-6 bg-card border border-border rounded-xl
-              shadow-lg hover:shadow-primary/30 transition-all duration-500
+              shadow-lg hover:shadow-primary/30
+              hover:scale-[1.03] hover:-translate-y-1
+              transition-all duration-500
               group overflow-hidden
               ${i === 0 ? 'ring-1 ring-primary/20' : ''}
             `}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse pointer-events-none" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-700 pointer-events-none">
+              <div className="w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-primary/10 animate-pulse" />
+            </div>
+
             <div className="relative z-10">
               <div className="text-3xl md:text-4xl font-bold mb-1 text-foreground">
-                {stat.value}
+                <CountUp end={stat.value} duration={1.2} />
               </div>
               <div className="text-sm md:text-base text-muted-foreground font-medium">
                 {stat.label}
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* Courses grid */}
       <div className="mt-6">
         <div className="flex items-center gap-4 mb-4">
           <h2 className="text-lg md:text-xl font-semibold shrink-0">Your Courses</h2>
@@ -227,10 +232,12 @@ export function Dashboard() {
             />
           </div>
         </div>
+
         {(() => {
           const filtered = courses.filter(course =>
             course.name.toLowerCase().includes(searchQuery.toLowerCase())
           );
+
           if (filtered.length === 0 && searchQuery) {
             return (
               <p className="text-sm text-muted-foreground py-8 text-center">
@@ -238,16 +245,13 @@ export function Dashboard() {
               </p>
             );
           }
+
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {filtered.map(course => (
                 <div
                   key={course.id}
-                  className="
-                    relative rounded-xl overflow-hidden transition-all duration-500
-                    hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-1
-                    group
-                  "
+                  className="relative rounded-xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-1 group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none" />
                   <CourseCard course={course} />
