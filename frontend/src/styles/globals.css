@@ -35,7 +35,7 @@
 --radius: 0.5rem;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"], .dark {
 --background: 222.2 84% 4.9%;
 --foreground: 210 40% 98%;
 
@@ -68,7 +68,7 @@
 
 * {
   border-color: hsl(var(--border));
-  }
+}
 
 body {
 background-color: hsl(var(--background));
@@ -107,4 +107,3 @@ font-size: 1.25rem;
 font-weight: 600;
 line-height: 1.4;
 }
-

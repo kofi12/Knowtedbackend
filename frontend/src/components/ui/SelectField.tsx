@@ -1,4 +1,11 @@
 import React from 'react';
+import {
+  Select as SelectRoot,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './select';
 
 interface SelectOption {
   value: string | number;
@@ -9,30 +16,35 @@ interface SelectFieldProps {
   id: string;
   label: string;
   value: string | number;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange: (value: string) => void;
   options: SelectOption[];
   required?: boolean;
 }
 
-export function Select({ id, label, value, onChange, options, required }: SelectFieldProps) {
+export function SelectField({ id, label, value, onChange, options, required }: SelectFieldProps) {
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium mb-2">
         {label}
       </label>
-      <select
-        id={id}
-        value={value}
-        onChange={onChange}
+      <SelectRoot
+        value={String(value)}
+        onValueChange={onChange}
         required={required}
-        className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="min-w-[220px]">
+          {options.map((option) => (
+            <SelectItem key={option.value} value={String(option.value)}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </SelectRoot>
     </div>
   );
 }
+
+export { SelectField as Select };

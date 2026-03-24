@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, ModalFooter } from './ui/Modal';
 import { Input } from './ui/InputField';
-import { Select } from './ui/SelectField';
+import { SelectField as Select } from './ui/SelectField';
 import { Button } from './ui/button';
 import { Course } from '../lib/mockData';
 
@@ -71,7 +71,7 @@ export function EditCourseModal({ isOpen, onClose, course, onSave }: EditCourseM
             id="editSemester"
             label="Semester"
             value={semester}
-            onChange={(e) => setSemester(e.target.value as 'Winter' | 'Summer' | 'Fall')}
+            onChange={(value) => setSemester(value as 'Winter' | 'Summer' | 'Fall')}
             options={semesterOptions}
             required
           />
@@ -79,7 +79,7 @@ export function EditCourseModal({ isOpen, onClose, course, onSave }: EditCourseM
             id="editYear"
             label="Year"
             value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
+            onChange={(value) => setYear(Number(value))}
             options={yearOptions}
             required
           />
@@ -89,7 +89,7 @@ export function EditCourseModal({ isOpen, onClose, course, onSave }: EditCourseM
           id="editColor"
           label="Color Theme"
           value={color}
-          onChange={(e) => setColor(e.target.value)}
+          onChange={(value) => setColor(value)}
           options={colorOptions}
         />
 
