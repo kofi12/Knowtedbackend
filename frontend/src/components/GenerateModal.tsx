@@ -127,7 +127,14 @@ export function GenerateModal({ isOpen, onClose, courseId, type }: GenerateModal
             disabled={selectedMaterials.length === 0}
             className="disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-primary/60"
           >
-            Generate
+          {isGenerating ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Generating...
+            </span>
+          ) : (
+            'Generate'
+          )}
           </Button>
         </ModalFooter>
       </form>
