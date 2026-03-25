@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Modal, ModalFooter } from './ui/Modal';
 import { Input } from './ui/InputField';
-import { Select } from './ui/SelectField';
+import { SelectField as Select } from './ui/SelectField';
 import { Textarea } from './ui/TextareaField';
 import { Button } from './ui/button';
+import { useCourses } from '../lib/CoursesContext';
 
 interface NewCourseModalProps {
   isOpen: boolean;
@@ -11,22 +12,36 @@ interface NewCourseModalProps {
 }
 
 export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
+  const { addCourse } = useCourses();
   const [courseName, setCourseName] = useState('');
   const [semester, setSemester] = useState<'Winter' | 'Summer' | 'Fall'>('Fall');
   const [year, setYear] = useState(new Date().getFullYear());
   const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const colors = ['indigo', 'teal', 'blue', 'purple'];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle course creation (e.g. call API, dispatch action, etc.)
-    console.log('Creating course:', { courseName, semester, year, description });
-    onClose();
+    setError('');
+    try {
+      await addCourse({
+        name: courseName,
+        semester,
+        year,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+      onClose();
 
-    // Reset form
-    setCourseName('');
-    setSemester('Fall');
-    setYear(new Date().getFullYear());
-    setDescription('');
+      // Reset form
+      setCourseName('');
+      setSemester('Fall');
+      setYear(new Date().getFullYear());
+      setDescription('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create course';
+      setError(message);
+    }
   };
 
   const semesterOptions = [
@@ -46,8 +61,6 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title="Create New Course"
-      // Optional: ensure modal has proper background/foreground
-      className="bg-background text-foreground max-w-lg"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <Input
@@ -58,7 +71,6 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
           onChange={(e) => setCourseName(e.target.value)}
           placeholder="e.g., Introduction to Computer Science"
           required
-          // shadcn Input usually already handles bg-background/foreground via css vars
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -66,7 +78,7 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
             id="semester"
             label="Semester"
             value={semester}
-            onChange={(e) => setSemester(e.target.value as 'Winter' | 'Summer' | 'Fall')}
+            onChange={(value) => setSemester(value as 'Winter' | 'Summer' | 'Fall')}
             options={semesterOptions}
             required
           />
@@ -75,7 +87,7 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
             id="year"
             label="Year"
             value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
+            onChange={(value) => setYear(Number(value))}
             options={yearOptions}
             required
           />
@@ -90,19 +102,20 @@ export function NewCourseModal({ isOpen, onClose }: NewCourseModalProps) {
           rows={4}
         />
 
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
+
         <ModalFooter>
           <Button
             type="button"
-            variant="outline"  // or "secondary" — outline usually looks better in modals
+            variant="outline"
             onClick={onClose}
           >
             Cancel
           </Button>
 
-          <Button
-            type="submit"
-            // Primary button usually gets bg-primary text-primary-foreground automatically
-          >
+          <Button type="submit">
             Create Course
           </Button>
         </ModalFooter>

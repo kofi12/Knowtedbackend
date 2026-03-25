@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.knowted'
@@ -19,11 +20,13 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'com.google.cloud:google-cloud-storage:2.44.0'
-	implementation 'com.google.auth:google-auth-library-oauth2-http:1.24.1'
+	implementation 'com.google.cloud:google-cloud-storage:2.64.0'
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -32,12 +35,42 @@ dependencies {
   	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	// Test dependencies – add or confirm these
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'   // optional but useful for JWT mocking
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testRuntimeOnly 'com.h2database:h2'
+	// Springdoc OpenAPI (for @Operation, @ApiResponse, @ApiResponses)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'  // latest stable as of 2025
+
+	// Jakarta Validation (for @Valid)
+	implementation 'jakarta.validation:jakarta.validation-api:3.1.0'
+	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'  // reference implementation
+
+	// Apache Tika (for text extraction including PDFs)
+	implementation 'org.apache.tika:tika-core:2.9.2'
+	implementation 'org.apache.tika:tika-parser-pdf-module:2.9.2'
+
+	// Lombok (for @RequiredArgsConstructor)
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 	
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+		csv.required = false
+	}
 }

@@ -1,65 +1,204 @@
-import { Clock, FileText, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router';
+import { useRef, useState, useEffect } from 'react';
+import { Clock, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Course } from '../lib/mockData';
-import { Progress } from './ui/progress';
 
 interface CourseCardProps {
   course: Course;
+  index?: number;
 }
 
-export function CourseCard({ course }: CourseCardProps) {
-  const colorClasses = {
-    indigo: 'from-indigo-500/10 to-indigo-500/5 border-indigo-500/20',
-    teal: 'from-teal-500/10 to-teal-500/5 border-teal-500/20',
-    blue: 'from-blue-500/10 to-blue-500/5 border-blue-500/20',
-    purple: 'from-purple-500/10 to-purple-500/5 border-purple-500/20',
+const colorMap = {
+  indigo: {
+    bar: '#6366f1',
+    glowBase: 'rgba(99,102,241,0.18)',
+    glowHover: 'rgba(99,102,241,0.58)',
+    gradient: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+  },
+  teal: {
+    bar: '#14b8a6',
+    glowBase: 'rgba(20,184,166,0.18)',
+    glowHover: 'rgba(20,184,166,0.58)',
+    gradient: 'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)',
+  },
+  blue: {
+    bar: '#3b82f6',
+    glowBase: 'rgba(59,130,246,0.18)',
+    glowHover: 'rgba(59,130,246,0.58)',
+    gradient: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+  },
+  purple: {
+    bar: '#a855f7',
+    glowBase: 'rgba(168,85,247,0.18)',
+    glowHover: 'rgba(168,85,247,0.58)',
+    gradient: 'linear-gradient(135deg, #a855f7 0%, #c084fc 100%)',
+  },
+};
+
+export function CourseCard({ course, index = 0 }: CourseCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [hovered, setHovered] = useState(false);
+
+  const colors =
+    colorMap[course.color as keyof typeof colorMap] ?? colorMap.indigo;
+
+  const pct = Math.min(100, Math.max(0, course.progress ?? 0));
+
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    const parent = el.parentElement;
+    if (!parent) return;
+
+    const resize = () => {
+      const parentWidth = parent.offsetWidth;
+      const textWidth = el.scrollWidth;
+      const scale = Math.min(1, parentWidth / textWidth);
+      el.style.transform = `scale(${scale})`;
+    };
+
+    resize();
+
+    const observer = new ResizeObserver(resize);
+    observer.observe(parent);
+
+    return () => observer.disconnect();
+  }, [course.name]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const rotateX = ((y - rect.height / 2) / rect.height) * -14;
+    const rotateY = ((x - rect.width / 2) / rect.width) * 14;
+
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.035)`;
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    card.style.transform =
+      'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
   };
 
   return (
-    <Link to={`/course/${course.id}`} className="block h-full">
-      <div className="bg-card border border-border rounded-lg md:rounded-xl hover:shadow-md transition-all duration-200 group h-full flex flex-col p-4 md:p-6">
-        {/* Color gradient accent */}
+    <Link
+      to={`/course/${course.id}`}
+      className="group block h-full rounded-xl focus:outline-none"
+      style={{
+        animation: 'cardEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both',
+        animationDelay: `${index * 80}ms`,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative h-full rounded-xl border bg-gradient-to-b from-card to-card/95 backdrop-blur-sm transition-all duration-400 overflow-hidden"
+        style={{
+          borderColor: hovered ? `${colors.bar}66` : `${colors.bar}30`,
+          boxShadow: hovered
+            ? `
+              0 0 0 1px ${colors.bar}55 inset,
+              0 10px 30px -10px ${colors.glowHover},
+              0 20px 80px -20px ${colors.glowHover}
+            `
+            : `
+              0 0 0 1px ${colors.bar}25 inset,
+              0 8px 25px -10px ${colors.glowBase}
+            `,
+        }}
+      >
         <div
-          className={`h-2 rounded-full mb-4 md:mb-6 bg-gradient-to-r ${
-            colorClasses[course.color as keyof typeof colorClasses] || colorClasses.indigo
-          }`}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-32 transition-all duration-500"
+          style={{
+            opacity: hovered ? 1 : 0.5,
+            background: `radial-gradient(circle at 50% 100%, ${colors.glowHover}, transparent 70%)`,
+          }}
         />
 
-        {/* Course name */}
-        <h3 className="text-base md:text-lg font-semibold group-hover:text-primary transition-colors mb-4 md:mb-6">
-          {course.name}
-        </h3>
-
-        {/* Stats */}
-        <div className="space-y-2 md:space-y-3 text-sm mb-4 md:mb-6 flex-1">
-          <div className="flex items-start gap-2 md:gap-3">
-            <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{course.materialsCount} materials</span>
-          </div>
-          <div className="flex items-start gap-2 md:gap-3">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span className="hidden sm:inline">Completed {course.completedCount} tasks</span>
-            <span className="sm:hidden">{course.completedCount} tasks</span>
-          </div>
-          <div className="flex items-start gap-2 md:gap-3">
-            <Clock className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
-            <span className="sm:hidden">{course.lastUpdated}</span>
-          </div>
+        <div className="relative h-2 w-full overflow-hidden">
+          <div
+            className="h-full origin-left transition-transform duration-700"
+            style={{
+              transform: `scaleX(${pct / 100})`,
+              background: colors.gradient,
+            }}
+          />
         </div>
 
-        {/* Progress bar */}
-        <div className="pt-4 md:pt-6 border-t border-border">
-          <div className="text-xs md:text-sm text-muted-foreground mb-2">Progress</div>
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="flex-1">
-              <Progress 
-                value={course.progress} 
-                color={course.color as any}
-                showLabel={false}
+        <div className="p-6 pb-7 flex flex-col h-full">
+          <h3
+            ref={titleRef}
+            className="origin-left whitespace-nowrap text-lg font-semibold tracking-tight transition-all duration-300 mb-2"
+            style={{
+              opacity: hovered ? 0.5 : 1,
+            }}
+          >
+            {course.name}
+          </h3>
+
+          <div
+            className="flex items-center justify-end mb-6 h-5 transition-all duration-300"
+            style={{
+              opacity: hovered ? 1 : 0,
+              transform: hovered ? 'translateY(0)' : 'translateY(-6px)',
+              color: colors.bar,
+            }}
+          >
+            <div className="flex items-center gap-1.5 text-sm font-semibold">
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: colors.gradient }}
+              >
+                Continue
+              </span>
+              <ArrowRight className="w-4 h-4 stroke-[2.8]" />
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-6 flex-1 text-sm text-muted-foreground/90">
+            {[
+              { icon: FileText, text: `${course.materialsCount ?? 0} materials` },
+              { icon: CheckCircle2, text: `Completed ${course.completedCount ?? 0} tasks` },
+              { icon: Clock, text: `Updated ${course.lastUpdated}` },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <item.icon
+                  className="w-4 h-4"
+                  style={{ color: hovered ? colors.bar : 'currentColor' }}
+                />
+                <span>{item.text}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-border/50">
+            <div className="flex items-center justify-between mb-2 text-xs">
+              <span>Progress</span>
+              <span style={{ color: hovered ? colors.bar : 'inherit' }}>
+                {pct}%
+              </span>
+            </div>
+
+            <div className="h-2.5 bg-muted/25 rounded-full overflow-hidden">
+              <div
+                className="h-full transition-all duration-700"
+                style={{
+                  width: `${pct}%`,
+                  background: colors.gradient,
+                }}
               />
             </div>
-            <span className="text-xs md:text-sm font-semibold">{course.progress}%</span>
           </div>
         </div>
       </div>

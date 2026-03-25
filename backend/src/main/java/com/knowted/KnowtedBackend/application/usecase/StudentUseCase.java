@@ -7,11 +7,11 @@ import com.knowted.KnowtedBackend.domain.exception.StudentNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import com.knowted.KnowtedBackend.presentation.mapper.StudentMapper;
 
 @Service
+@SuppressWarnings("unused")
 public class StudentUseCase {
 
     private final StudentRepository studentRepository;
@@ -30,7 +30,7 @@ public class StudentUseCase {
 
     public StudentResponseDto getStudentById(UUID id) {
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new StudentNotFoundException(id));
+                .orElseThrow(() -> new StudentNotFoundException("Student not found" + id));
 
         return studentMapper.toResponseDto(student);
     }

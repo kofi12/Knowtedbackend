@@ -1,31 +1,130 @@
-import React, { useState, useRef } from 'react';
-import { useParams } from 'react-router';
-import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload } from 'lucide-react';
-import { mockCourses, mockMaterials, mockAids } from '../lib/mockData';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload, Pencil, Trash2 } from 'lucide-react';
+import { Aid, Material } from '../lib/mockData';
+import { useCourses } from '../lib/CoursesContext';
 import { GenerateModal } from '../components/GenerateModal';
 import { FlashcardViewer } from '../components/FlashcardViewer';
+import { QuizViewer } from '../components/QuizViewer';
+import { EditCourseModal } from '../components/EditCourseModal';
+import { DeleteCourseModal } from '../components/DeleteCourseModal';
+import { DeleteMaterialModal } from '../components/course/DeleteMaterialModal';
 import { Tabs } from '../components/ui/TabsWrapper';
 import { MaterialItem } from '../components/course/MaterialItem';
 import { AidCard } from '../components/course/AidCard';
 import { GenerateAidButton } from '../components/course/GenerateAidButton';
-import { UploadArea } from '../components/course/UploadArea';
+import { Button } from '../components/ui/button';
+import {
+  CourseDocumentResponseDto,
+  FlashcardDeckResponseDto,
+  QuizResponseDto,
+  deleteDocument,
+  fetchCourseDocuments,
+  getDocumentPresignedUrl,
+  listFlashcardDecks,
+  listQuizzes,
+  uploadCourseDocument,
+} from '../lib/api';
 
 type AidType = 'quiz' | 'flashcards' | 'guide' | 'schedule';
 
 export function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
+  const { courses, updateCourse, deleteCourse } = useCourses();
+
   const [activeTab, setActiveTab] = useState<'materials' | 'aids'>('materials');
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [generateType, setGenerateType] = useState<AidType>('quiz');
   const [flashcardViewerOpen, setFlashcardViewerOpen] = useState(false);
+  const [quizViewerOpen, setQuizViewerOpen] = useState(false);
+
+  const [editCourseModalOpen, setEditCourseModalOpen] = useState(false);
+  const [deleteCourseModalOpen, setDeleteCourseModalOpen] = useState(false);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+
+  const [deleteMaterialModalOpen, setDeleteMaterialModalOpen] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<Material | null>(null);
+  const [isDeletingMaterial, setIsDeletingMaterial] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFilesPreview, setSelectedFilesPreview] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const [materialError, setMaterialError] = useState<string | null>(null);
 
-  const course = mockCourses.find(c => c.id === courseId);
-  const materials = mockMaterials.filter(m => m.courseId === courseId);
-  const aids = mockAids.filter(a => a.courseId === courseId);
+  const course = courses.find(c => c.id === courseId);
+  const [courseMaterials, setCourseMaterials] = useState<Material[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([]);
+  const [flashcardDecks, setFlashcardDecks] = useState<FlashcardDeckResponseDto[]>([]);
+  const [selectedDeck, setSelectedDeck] = useState<FlashcardDeckResponseDto | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizResponseDto | null>(null);
+
+  const aids: Aid[] = [
+    ...quizzes.map((q: QuizResponseDto) => ({ id: q.quizId, courseId: q.courseId, type: 'quiz' as const, name: q.title, createdAt: new Date(q.createdAt).toLocaleDateString() })),
+    ...flashcardDecks.map((d: FlashcardDeckResponseDto) => ({ id: d.deckId, courseId: d.courseId, type: 'flashcards' as const, name: d.title, createdAt: new Date(d.createdAt).toLocaleDateString() })),
+  ];
+
+  const inferMaterialType = (contentType: string, fileName: string): Material['type'] => {
+    const lowerType = (contentType || '').toLowerCase();
+    const lowerName = fileName.toLowerCase();
+    if (lowerType.includes('pdf') || lowerName.endsWith('.pdf')) return 'pdf';
+    if (lowerType.startsWith('video/')) return 'video';
+    if (lowerType.includes('word') || lowerType.includes('document') || lowerName.endsWith('.doc') || lowerName.endsWith('.docx')) {
+      return 'doc';
+    }
+    return 'slides';
+  };
+
+  const formatUploadedAt = (isoDate: string): string => {
+    const date = new Date(isoDate);
+    if (Number.isNaN(date.getTime())) return 'Unknown date';
+    return date.toLocaleDateString();
+  };
+
+  const mapDocumentToMaterial = (document: CourseDocumentResponseDto): Material => ({
+    id: document.documentId,
+    courseId: document.courseId,
+    name: document.originalFilename,
+    type: inferMaterialType(document.contentType, document.originalFilename),
+    uploadedAt: formatUploadedAt(document.uploadedAt),
+  });
+
+  const loadCourseMaterials = async () => {
+    if (!courseId) return;
+    setLoadingMaterials(true);
+    setMaterialError(null);
+    try {
+      const documents = await fetchCourseDocuments(courseId);
+      setCourseMaterials(documents.map(mapDocumentToMaterial));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load course documents.';
+      setMaterialError(message);
+      setCourseMaterials([]);
+    } finally {
+      setLoadingMaterials(false);
+    }
+  };
+
+  const loadAids = async () => {
+    if (!courseId) return;
+    try {
+      const [fetchedQuizzes, fetchedDecks] = await Promise.all([
+        listQuizzes(courseId),
+        listFlashcardDecks(courseId),
+      ]);
+      setQuizzes(fetchedQuizzes);
+      setFlashcardDecks(fetchedDecks);
+    } catch (err) {
+      console.error('Failed to load study aids:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadCourseMaterials();
+    loadAids();
+  }, [courseId]);
 
   if (!course) {
     return (
@@ -44,16 +143,26 @@ export function CourseDetail() {
     }
   };
 
-  const processFiles = (files: FileList | null) => {
-    if (files && files.length > 0) {
-      const fileNames = Array.from(files).map(f => f.name);
-      setSelectedFilesPreview(fileNames);
-      console.log('Files selected (not uploaded):', fileNames);
+  const processFiles = async (files: FileList | null) => {
+    if (!courseId || !files || files.length === 0) return;
+    const selectedFiles = Array.from(files);
+    setSelectedFilesPreview(selectedFiles.map((file) => file.name));
+    setIsUploading(true);
+    setMaterialError(null);
+    try {
+      await Promise.all(selectedFiles.map((file) => uploadCourseDocument(courseId, file)));
+      await loadCourseMaterials();
+      setSelectedFilesPreview([]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upload one or more files.';
+      setMaterialError(message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    processFiles(e.target.files);
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await processFiles(e.target.files);
     e.target.value = '';
   };
 
@@ -69,11 +178,11 @@ export function CourseDetail() {
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-    processFiles(e.dataTransfer.files);
+    await processFiles(e.dataTransfer.files);
   };
 
   const handleGenerate = (type: AidType) => {
@@ -81,11 +190,71 @@ export function CourseDetail() {
     setGenerateModalOpen(true);
   };
 
-  const handleAidClick = (aid: typeof aids[0]) => {
+  const handleAidClick = (aid: Aid) => {
     if (aid.type === 'flashcards') {
+      const deck = flashcardDecks.find(d => d.deckId === aid.id) ?? null;
+      setSelectedDeck(deck);
       setFlashcardViewerOpen(true);
-    } else {
-      console.log('Opening aid:', aid);
+      return;
+    }
+
+    if (aid.type === 'quiz') {
+      const quiz = quizzes.find((q: QuizResponseDto) => q.quizId === aid.id) ?? null;
+      setSelectedQuiz(quiz);
+      setQuizViewerOpen(true);
+      return;
+    }
+  };
+
+  const handleEditCourseSave = async (id: string, updates: { name: string; semester: 'Winter' | 'Summer' | 'Fall'; year: number; color: string }) => {
+    try {
+      await updateCourse(id, updates);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update course.';
+      alert(message);
+    }
+  };
+
+  const handleConfirmDeleteCourse = async (id: string) => {
+    setIsDeletingCourse(true);
+    try {
+      await deleteCourse(id);
+      navigate('/');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete course.';
+      alert(message);
+    } finally {
+      setIsDeletingCourse(false);
+    }
+  };
+
+  const handleDeleteMaterial = (material: Material) => {
+    setMaterialToDelete(material);
+    setDeleteMaterialModalOpen(true);
+  };
+
+  const handleViewMaterial = async (material: Material) => {
+    try {
+      const url = await getDocumentPresignedUrl(material.id);
+      window.open(url.presignedUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to open document.';
+      setMaterialError(message);
+    }
+  };
+
+  const handleConfirmDeleteMaterial = async (materialId: string) => {
+    setIsDeletingMaterial(true);
+    try {
+      await deleteDocument(materialId);
+      setCourseMaterials(prev => prev.filter(m => m.id !== materialId));
+      setDeleteMaterialModalOpen(false);
+      setMaterialToDelete(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete document.';
+      setMaterialError(message);
+    } finally {
+      setIsDeletingMaterial(false);
     }
   };
 
@@ -117,7 +286,7 @@ export function CourseDetail() {
 
           {selectedFilesPreview.length > 0 && (
             <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm font-medium mb-2">Selected files (not saved yet):</p>
+              <p className="text-sm font-medium mb-2">Selected files:</p>
               <ul className="text-sm space-y-1">
                 {selectedFilesPreview.map((name, i) => (
                   <li key={i} className="flex items-center gap-2">
@@ -126,18 +295,31 @@ export function CourseDetail() {
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-muted-foreground mt-2 italic">
-                Upload not implemented yet — files are only selected locally.
-              </p>
+              {isUploading && (
+                <p className="text-xs text-muted-foreground mt-2 italic">Uploading...</p>
+              )}
             </div>
           )}
 
-          {materials.length > 0 && (
+          {materialError && (
+            <p className="text-sm text-destructive">{materialError}</p>
+          )}
+
+          {loadingMaterials && (
+            <p className="text-sm text-muted-foreground">Loading materials...</p>
+          )}
+
+          {courseMaterials.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-semibold">Uploaded Materials</h3>
               <div className="space-y-2">
-                {materials.map(material => (
-                  <MaterialItem key={material.id} material={material} onView={(m) => console.log('View material:', m)} />
+                {courseMaterials.map(material => (
+                  <MaterialItem
+                    key={material.id}
+                    material={material}
+                    onView={handleViewMaterial}
+                    onDelete={handleDeleteMaterial}
+                  />
                 ))}
               </div>
             </div>
@@ -174,17 +356,43 @@ export function CourseDetail() {
   return (
     <div>
       <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.name}</h1>
-        <div className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
-          <span>{course.semester} {course.year}</span>
-          <span>{course.materialsCount} materials</span>
-          <span>{course.aidsCount} study aids</span>
-          <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.name}</h1>
+            <div className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
+              <span>{course.semester} {course.year}</span>
+              <span>{course.materialsCount} materials</span>
+              <span>{course.aidsCount} study aids</span>
+              <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditCourseModalOpen(true)}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => setDeleteCourseModalOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
         </div>
       </div>
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as 'materials' | 'aids')} />
-      <GenerateModal isOpen={generateModalOpen} onClose={() => setGenerateModalOpen(false)} courseId={courseId!} type={generateType} />
-      <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => setFlashcardViewerOpen(false)} />
+      <GenerateModal
+        isOpen={generateModalOpen}
+        onClose={() => setGenerateModalOpen(false)}
+        courseId={courseId!}
+        type={generateType}
+        materials={courseMaterials}
+        onQuizGenerated={(quiz: QuizResponseDto) => setQuizzes((prev: QuizResponseDto[]) => [quiz, ...prev])}
+        onFlashcardsGenerated={(deck: FlashcardDeckResponseDto) => setFlashcardDecks((prev: FlashcardDeckResponseDto[]) => [deck, ...prev])}
+      />
+      <FlashcardViewer isOpen={flashcardViewerOpen} onClose={() => { setFlashcardViewerOpen(false); setSelectedDeck(null); }} deck={selectedDeck} />
+      <QuizViewer isOpen={quizViewerOpen} onClose={() => { setQuizViewerOpen(false); setSelectedQuiz(null); }} quiz={selectedQuiz} />
+      <EditCourseModal isOpen={editCourseModalOpen} onClose={() => setEditCourseModalOpen(false)} course={course} onSave={handleEditCourseSave} />
+      <DeleteCourseModal isOpen={deleteCourseModalOpen} onClose={() => setDeleteCourseModalOpen(false)} course={course} onConfirmDelete={handleConfirmDeleteCourse} isDeleting={isDeletingCourse} />
+      <DeleteMaterialModal isOpen={deleteMaterialModalOpen} onClose={() => { setDeleteMaterialModalOpen(false); setMaterialToDelete(null); }} material={materialToDelete} onConfirmDelete={handleConfirmDeleteMaterial} isDeleting={isDeletingMaterial} />
       <input
         type="file"
         ref={fileInputRef}

@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "courses")
+@SuppressWarnings("unused")
 public class Course {
 
     @Id
@@ -61,6 +62,10 @@ public class Course {
     public Instant getUpdatedAt() { return updatedAt; }
     public List<CourseDocument> getCourseDocuments() { return courseDocuments; }
 
+    public void setCode(String code) { this.code = code; }
+    public void setName(String name) { this.name = name; }
+    public void setTerm(String term) { this.term = term; }
+
     public void addCourseDocument(CourseDocument doc) {
         if (courseDocuments.size() >= 50) throw new IllegalStateException("Too many courseDocuments");
         courseDocuments.add(doc);
@@ -70,5 +75,12 @@ public class Course {
     public void removeCourseDocument(CourseDocument doc) {
         courseDocuments.remove(doc);
         doc.setCourse(null);
+    }
+
+    public Course orElseThrow(Object o) {
+        if (o instanceof Course) {
+            return (Course) o;
+        }
+        return null;
     }
 }

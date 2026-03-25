@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
+@SuppressWarnings("unused")
 public class HealthController {
 
     @GetMapping("/health")

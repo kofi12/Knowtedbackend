@@ -3,6 +3,7 @@ package com.knowted.KnowtedBackend.presentation.mapper;
 import com.knowted.KnowtedBackend.domain.entity.Course;
 import com.knowted.KnowtedBackend.presentation.dto.CourseDto;
 
+@SuppressWarnings("unused")
 public class CourseMapper {
 
     private CourseMapper() {}
@@ -15,7 +16,8 @@ public class CourseMapper {
                 c.getName(),
                 c.getTerm(),
                 c.getCreatedAt(),
-                c.getUpdatedAt()
+                c.getUpdatedAt(),
+                0
         );
     }
 }

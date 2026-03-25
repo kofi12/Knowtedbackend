@@ -11,28 +11,47 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Service;
 
+@Service
+@SuppressWarnings("unused")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+  name = "storage.provider",
+  havingValue = "gcs"
+)
 public class GCSStorageService implements StorageService {
 
-    private final Storage googleStorage;
+    private volatile Storage googleStorage;
     private final String bucketName;
+    private static final org.slf4j.Logger log =
+        org.slf4j.LoggerFactory.getLogger(GCSStorageService.class);
 
     public GCSStorageService( @Value("${gcp.bucket.name}")String bucketName) {
-        this.googleStorage = StorageOptions.getDefaultInstance().getService();
         this.bucketName = bucketName;
+    }
+
+    private Storage getGoogleStorage() {
+        if (googleStorage == null) {
+            synchronized (this) {
+                if (googleStorage == null) {
+                    googleStorage = StorageOptions.getDefaultInstance().getService();
+                }
+            }
+        }
+        return googleStorage;
     }
 
     @Override
     public String upload(InputStream contentStream, String fileName, String contentType) {
-
+        String safeName = fileName == null ? "file" : fileName.replaceAll("[\\\\/]+", "_");
         String storageKey = "documents/" + Instant.now().toEpochMilli() + "_" + UUID.randomUUID().toString().substring(0, 6) +
-                fileName;
+                "_" + safeName;
 
         BlobId blobId = BlobId.of(bucketName, storageKey);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(contentType).build();
 
         try {
-            googleStorage.createFrom(blobInfo, contentStream);
+            getGoogleStorage().createFrom(blobInfo, contentStream);
         } catch(IOException e) {
             throw new RuntimeException("Failed to upload content to GCS", e);
         }
@@ -41,25 +60,38 @@ public class GCSStorageService implements StorageService {
     }
 
     @Override
-    public String getPresignedDownloadUrl(String storageKey, Duration expiration) {
+    public String getPresignedUrl(String storageKey, Duration expiration) {
 
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, storageKey).build();
 
-        URL signedUrl = googleStorage.signUrl(blobInfo, expiration.getSeconds(), TimeUnit.SECONDS,
+        URL signedUrl = getGoogleStorage().signUrl(blobInfo, expiration.getSeconds(), TimeUnit.SECONDS,
                 Storage.SignUrlOption.httpMethod(HttpMethod.GET), Storage.SignUrlOption.withV4Signature());
 
         return signedUrl.toString();
     }
 
     @Override
+    public byte[] download(String storageKey) {
+        Blob blob = getGoogleStorage().get(BlobId.of(bucketName, storageKey));
+        if (blob == null) {
+            throw new RuntimeException("GCS object not found: " + bucketName + "/" + storageKey);
+        }
+        return blob.getContent();
+    }
+
+    @Override
     public void delete(String storageKey) {
 
         BlobId blobId = BlobId.of(bucketName, storageKey);
-        googleStorage.delete(blobId);
+        boolean deleted = getGoogleStorage().delete(blobId);
+        if (!deleted) {
+            log.debug("GCS object not found: {}/{}", bucketName, storageKey);
+        }
     }
 
     @Override
     public boolean exists(String storageKey) {
-        return false;
+        Blob blob = getGoogleStorage().get(BlobId.of(bucketName, storageKey));
+        return blob != null;
     }
 }

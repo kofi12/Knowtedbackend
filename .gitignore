@@ -30,7 +30,7 @@ out/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/dist/
+frontend/dist/
 /nbdist/
 /.nb-gradle/
 
@@ -41,4 +41,9 @@ out/
 .DS_Store
 
 .env
-application.properties
+.env.local
+.env.*.local
+gcs-credentials.json
+backend/gcs-credentials.json
+Knowted.code-workspace
+backend.code-workspace

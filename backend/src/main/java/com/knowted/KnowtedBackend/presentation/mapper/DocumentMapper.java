@@ -5,6 +5,7 @@ import com.knowted.KnowtedBackend.presentation.dto.DocumentDto;
 
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class DocumentMapper {
 
     private DocumentMapper() {}

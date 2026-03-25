@@ -33,6 +33,16 @@ export interface Flashcard {
   known: boolean;
 }
 
+export interface QuizQuestion {
+  id: string;
+  courseId: string;
+  aidId?: string;
+  prompt: string;
+  answers: [string, string, string, string];
+  correctAnswer: string;
+  explanation?: string;
+}
+
 export const mockCourses: Course[] = [
   {
     id: '1',
@@ -128,6 +138,22 @@ export const mockAids: Aid[] = [
   },
 ];
 
+export interface MockUser {
+  studentId: string;
+  email: string;
+  displayName: string;
+  authProvider: string;
+  createdAt: string;
+}
+
+export const mockCurrentUser: MockUser = {
+  studentId: '550e8400-e29b-41d4-a716-446655440000',
+  email: 'alex.student@example.com',
+  displayName: 'Alex Student',
+  authProvider: 'google',
+  createdAt: '2024-01-15T10:30:00Z',
+};
+
 export const mockFlashcards: Flashcard[] = [
   {
     id: 'f1',
@@ -152,5 +178,59 @@ export const mockFlashcards: Flashcard[] = [
     question: 'What is recursion?',
     answer: 'Recursion is a programming technique where a function calls itself to solve a problem by breaking it down into smaller, similar subproblems. It requires a base case to prevent infinite loops.',
     known: false,
+  },
+];
+
+export const mockQuizQuestions: QuizQuestion[] = [
+  {
+    id: 'q1',
+    courseId: '1',
+    aidId: 'a2',
+    prompt: 'Which data structure follows a Last-In-First-Out access pattern?',
+    answers: ['Queue', 'Stack', 'Graph', 'Heap'],
+    correctAnswer: 'Stack',
+    explanation: 'Stacks remove the most recently added item first, which is the LIFO rule.',
+  },
+  {
+    id: 'q2',
+    courseId: '1',
+    aidId: 'a2',
+    prompt: 'What does Big O notation describe?',
+    answers: [
+      'A program’s visual layout',
+      'The upper bound of algorithm growth',
+      'A variable naming convention',
+      'A database relationship',
+    ],
+    correctAnswer: 'The upper bound of algorithm growth',
+    explanation: 'Big O focuses on how runtime or memory usage grows as input size increases.',
+  },
+  {
+    id: 'q3',
+    courseId: '1',
+    aidId: 'a2',
+    prompt: 'Which of these best describes recursion?',
+    answers: [
+      'A function calling itself to solve smaller subproblems',
+      'A loop that only runs once',
+      'A way to store files in memory',
+      'A method for sorting without comparisons',
+    ],
+    correctAnswer: 'A function calling itself to solve smaller subproblems',
+    explanation: 'Recursive solutions repeatedly reduce a problem until they reach a base case.',
+  },
+  {
+    id: 'q4',
+    courseId: '1',
+    aidId: 'a2',
+    prompt: 'Which statement about variables is correct?',
+    answers: [
+      'Variables can never change after assignment',
+      'Variables are named storage locations for values',
+      'Variables only exist in databases',
+      'Variables must always store numbers',
+    ],
+    correctAnswer: 'Variables are named storage locations for values',
+    explanation: 'A variable gives a value a readable name so the program can reference it later.',
   },
 ];

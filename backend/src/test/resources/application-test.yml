@@ -2,6 +2,25 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration     # ← disable real datasource
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration # ← optional but helps
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration        # ← disable Flyway in tests
+
+  # In-memory H2 for tests
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update   # or create-drop if you want fresh schema each test run
+    show-sql: true       # optional – helpful for debugging
+
+  flyway:
+    enabled: false       # redundant with exclude but explicit is good
 
 jwt:
   secret: super-long-dummy-secret-for-tests-only-1234567890123456
@@ -9,3 +28,8 @@ jwt:
 
 frontend:
   redirect-url: http://localhost:5173/dashboard?loggedIn=true
+
+openai:
+  api:
+    key: test-dummy-key
+  model: gpt-4o-mini
