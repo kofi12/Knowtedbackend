@@ -3,6 +3,7 @@ package com.knowted.KnowtedBackend.presentation.controllers;
 import com.knowted.KnowtedBackend.application.usecase.CourseUseCase;
 import com.knowted.KnowtedBackend.infrastructure.auth.JwtAuthenticationFilter;
 import com.knowted.KnowtedBackend.infrastructure.auth.OAuth2SuccessHandler;
+import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseDocumentRepository;
 import com.knowted.KnowtedBackend.domain.entity.Course;
 import com.knowted.KnowtedBackend.presentation.dto.CreateCourseRequest;
 import com.knowted.KnowtedBackend.presentation.dto.UpdateCourseRequest;
@@ -34,6 +35,9 @@ class CourseControllerTest {
 
     @MockitoBean
     private CourseUseCase courseUseCase;
+
+    @MockitoBean
+    private JPACourseDocumentRepository courseDocumentRepository;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
