@@ -85,6 +85,16 @@ public class QuizController {
         return quizUseCase.getAttempt(userId, attemptId);
     }
 
+    @Operation(summary = "List all questions across all quizzes in a course")
+    @GetMapping("/courses/{courseId}/questions")
+    public List<QuizQuestionDto> listCourseQuestions(
+            @PathVariable UUID courseId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return quizUseCase.listCourseQuestions(userId, courseId);
+    }
+
     @Operation(summary = "Delete a quiz")
     @DeleteMapping("/quizzes/{quizId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

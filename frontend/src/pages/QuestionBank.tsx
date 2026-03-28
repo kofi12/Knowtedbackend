@@ -2,16 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Brain, ListChecks, ArrowLeft, Loader2 } from 'lucide-react';
-import api from '../api/api'; // Adjust path to your API client
-// import { Question } from '../types'; // to be determined
+import { fetchCourseQuestions, CourseQuestionItem } from '../lib/api';
 
-type Question = {
-  id: string;
-  type: 'flashcards' | 'quiz' | 'true_false' | 'multiple_choice' | 'fill_blank';
-  questionText: string;
-  answer: string;
-  options?: string[]; // for MCQ
-  courseId: string;
+type Question = CourseQuestionItem & {
+  courseId?: string;
   createdAt?: string;
 };
 
@@ -29,8 +23,8 @@ export function QuestionBank() {
       if (!courseId) return;
       try {
         setLoading(true);
-        const res = await api.get(`/courses/${courseId}/questions`); // Adjust endpoint to match backend
-        setQuestions(res.data || []);
+        const data = await fetchCourseQuestions(courseId);
+        setQuestions(data);
       } catch (err) {
         setError('Failed to load question bank. Please try again.');
         console.error(err);

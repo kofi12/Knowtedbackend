@@ -274,6 +274,29 @@ public class QuizUseCase {
         return buildAttemptResponse(attempt);
     }
 
+    @Transactional(readOnly = true)
+    public List<QuizQuestionDto> listCourseQuestions(UUID userId, UUID courseId) {
+        courseRepository.findByCourseIdAndUserId(courseId, userId)
+                .orElseThrow(() -> new CourseNotFoundException("Course not found: " + courseId));
+
+        List<StudyAid> studyAids = studyAidRepository.findByCourseIdAndTypeIdWithCourse(courseId, QUIZ_TYPE_ID);
+
+        return studyAids.stream()
+                .map(aid -> quizRepository.findByIdWithQuestionsAndOptions(aid.getStudyAidId()).orElse(null))
+                .filter(Objects::nonNull)
+                .flatMap(quiz -> quiz.getQuestions().stream())
+                .map(q -> new QuizQuestionDto(
+                        q.getQuestionId(),
+                        q.getQuestionText(),
+                        q.getQuestionType(),
+                        q.getOrderIndex(),
+                        q.getOptions().stream()
+                                .map(o -> new QuestionOptionDto(o.getOptionId(), o.getOptionText(), o.isCorrect(), o.getOrderIndex()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void deleteQuiz(UUID userId, UUID quizId) {
         StudyAid studyAid = studyAidRepository.findById(quizId)

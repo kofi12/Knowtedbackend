@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, RotateCw, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import api from '../api/api';
+import { fetchCourseQuestions } from '../lib/api';
 
 type Question = {
   id: string;
@@ -29,12 +29,12 @@ export function QuizSession() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await api.get(`/courses/${courseId}/questions`);
-        let filtered = res.data;
-        if (selected.length > 0) {
-          filtered = filtered.filter((q: Question) => selected.includes(q.id));
-        }
-        setQuestions(filtered || []);
+        if (!courseId) return;
+        const data = await fetchCourseQuestions(courseId);
+        const filtered = selected.length > 0
+          ? data.filter((q: Question) => selected.includes(q.id))
+          : data;
+        setQuestions(filtered);
       } catch (err) {
         console.error('Quiz load failed', err);
       } finally {
@@ -116,15 +116,14 @@ export function QuizSession() {
                 key={idx}
                 onClick={() => handleMCQSelect(opt)}
                 disabled={!!feedback}
-                className={`w-full p-4 text-left border rounded-lg transition ${
-                  feedback
+                className={`w-full p-4 text-left border rounded-lg transition ${feedback
                     ? opt === current.answer
                       ? 'bg-green-100 border-green-500'
                       : opt === userAnswer
-                      ? 'bg-red-100 border-red-500'
-                      : ''
+                        ? 'bg-red-100 border-red-500'
+                        : ''
                     : 'hover:bg-muted'
-                }`}
+                  }`}
               >
                 {opt}
               </button>

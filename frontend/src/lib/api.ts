@@ -350,3 +350,24 @@ export async function listQuizAttempts(quizId: string): Promise<QuizAttemptRespo
 export async function deleteQuiz(quizId: string): Promise<void> {
   return apiFetch<void>(`/api/quizzes/${quizId}`, { method: 'DELETE' });
 }
+
+// ── Question Bank ──
+
+export interface CourseQuestionItem {
+  id: string;
+  type: string;
+  questionText: string;
+  answer: string;
+  options?: string[];
+}
+
+export async function fetchCourseQuestions(courseId: string): Promise<CourseQuestionItem[]> {
+  const dtos = await apiFetch<QuizQuestionDto[]>(`/api/courses/${courseId}/questions`);
+  return dtos.map(q => ({
+    id: String(q.questionId),
+    type: q.questionType,
+    questionText: q.questionText,
+    answer: q.options.find(o => o.isCorrect)?.optionText ?? '',
+    options: q.options.map(o => o.optionText),
+  }));
+}
