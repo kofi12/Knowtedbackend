@@ -1,257 +1,168 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, CheckCircle2, RotateCcw, Trophy, XCircle } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { mockQuizQuestions } from '../lib/mockData';
-import { useCourses } from '../lib/CoursesContext';
+// pages/QuizSession.tsx
+import React, { useState, useEffect } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, RotateCw, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import api from '../api/api';
+
+type Question = {
+  id: string;
+  type: string;
+  questionText: string;
+  answer: string;
+  options?: string[];
+};
 
 export function QuizSession() {
+  const { courseId } = useParams<{ courseId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { courseId, aidId } = useParams<{ courseId: string; aidId?: string }>();
-  const { courses } = useCourses();
 
-  const course = courses.find((item) => item.id === courseId);
-  const questions = useMemo(() => {
-    const matches = mockQuizQuestions.filter((question) => {
-      if (question.courseId !== courseId) {
-        return false;
-      }
+  const selected = searchParams.get('selected')?.split(',') || [];
 
-      if (aidId && question.aidId !== aidId) {
-        return false;
-      }
-
-      return true;
-    });
-
-    if (matches.length > 0) {
-      return matches;
-    }
-
-    return [
-      {
-        id: `${courseId}-intro-1`,
-        courseId: courseId ?? '',
-        prompt: `Which statement best describes the goal of studying ${course?.name ?? 'this course'}?`,
-        answers: [
-          'Memorizing every sentence without context',
-          'Building understanding you can apply in practice',
-          'Skipping all review and practice',
-          'Only reading the title of each chapter',
-        ] as [string, string, string, string],
-        correctAnswer: 'Building understanding you can apply in practice',
-        explanation: 'Good quiz practice checks whether you can use concepts, not just recognize them.',
-      },
-      {
-        id: `${courseId}-intro-2`,
-        courseId: courseId ?? '',
-        prompt: 'What makes a multiple-choice question fair and useful for learning?',
-        answers: [
-          'All four answers are correct',
-          'It has one clear best answer and plausible distractors',
-          'It hides the question from the learner',
-          'It changes the rules after submission',
-        ] as [string, string, string, string],
-        correctAnswer: 'It has one clear best answer and plausible distractors',
-        explanation: 'Strong quiz questions have one correct answer and distractors that still require real thinking.',
-      },
-    ];
-  }, [aidId, course?.name, courseId]);
-
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, string>>({});
+  const [flipped, setFlipped] = useState(false); // for flashcards
+  const [userAnswer, setUserAnswer] = useState<string>('');
+  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const currentQuestion = questions[currentIndex];
-  const currentAnswer = submittedAnswers[currentQuestion?.id];
-  const isAnswered = Boolean(currentAnswer);
-  const isCorrect = currentAnswer === currentQuestion?.correctAnswer;
-  const score = questions.reduce((total, question) => {
-    return total + (submittedAnswers[question.id] === question.correctAnswer ? 1 : 0);
-  }, 0);
-  const isFinished = questions.length > 0 && Object.keys(submittedAnswers).length === questions.length;
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const res = await api.get(`/courses/${courseId}/questions`);
+        let filtered = res.data;
+        if (selected.length > 0) {
+          filtered = filtered.filter((q: Question) => selected.includes(q.id));
+        }
+        setQuestions(filtered || []);
+      } catch (err) {
+        console.error('Quiz load failed', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [courseId, selected]);
 
-  const handleSubmitAnswer = () => {
-    if (!currentQuestion || !selectedAnswer) {
-      return;
+  const current = questions[currentIndex];
+
+  const handleFlip = () => setFlipped(!flipped);
+
+  const handleMCQSelect = (choice: string) => {
+    setUserAnswer(choice);
+    setFeedback(choice === current?.answer ? 'correct' : 'incorrect');
+  };
+
+  const nextQuestion = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(i => i + 1);
+      setFlipped(false);
+      setUserAnswer('');
+      setFeedback(null);
     }
-
-    setSubmittedAnswers((prev) => ({
-      ...prev,
-      [currentQuestion.id]: selectedAnswer,
-    }));
   };
 
-  const handleNext = () => {
-    if (currentIndex >= questions.length - 1) {
-      return;
-    }
+  const goBack = () => navigate(`/course/${courseId}/bank`);
 
-    const nextIndex = currentIndex + 1;
-    setCurrentIndex(nextIndex);
-    setSelectedAnswer(submittedAnswers[questions[nextIndex].id] ?? null);
-  };
+  if (loading) return <div className="flex justify-center items-center min-h-[70vh]"><Loader2 className="animate-spin h-12 w-12" /></div>;
 
-  const handlePrevious = () => {
-    if (currentIndex === 0) {
-      return;
-    }
-
-    const previousIndex = currentIndex - 1;
-    setCurrentIndex(previousIndex);
-    setSelectedAnswer(submittedAnswers[questions[previousIndex].id] ?? null);
-  };
-
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setSelectedAnswer(null);
-    setSubmittedAnswers({});
-  };
-
-  if (!courseId || !currentQuestion) {
+  if (!current) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-        <h2 className="text-2xl font-semibold">Quiz not available</h2>
-        <p className="max-w-md text-muted-foreground">
-          We could not find quiz questions for this course yet.
-        </p>
-        <Button onClick={() => navigate(courseId ? `/course/${courseId}` : '/')}>Back to course</Button>
+      <div className="text-center min-h-[70vh] flex flex-col items-center justify-center">
+        <h2 className="text-2xl font-bold mb-4">No questions available</h2>
+        <button onClick={goBack} className="btn-primary">Back to Bank</button>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button variant="ghost" onClick={() => navigate(`/course/${courseId}`)}>
-          <ArrowLeft className="h-4 w-4" />
-          Back to course
-        </Button>
-        <div className="text-sm text-muted-foreground">
-          {course?.name ?? 'Quiz'} · Question {currentIndex + 1} of {questions.length}
+    <div className="max-w-3xl mx-auto space-y-8">
+      <div className="flex items-center justify-between">
+        <button onClick={goBack} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-5 w-5" /> Back to Bank
+        </button>
+        <div className="text-sm">
+          Question {currentIndex + 1} / {questions.length}
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="h-2 bg-muted">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-          />
-        </div>
+      <div className="bg-card border rounded-xl p-8 min-h-[400px] flex flex-col">
+        <h2 className="text-xl md:text-2xl font-semibold mb-6 text-center">
+          {current.questionText}
+        </h2>
 
-        <div className="space-y-8 p-6 md:p-8">
-          <div className="space-y-3">
-            <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-primary">
-              Multiple Choice
-            </div>
-            <h1 className="text-2xl font-semibold leading-tight md:text-3xl">
-              {currentQuestion.prompt}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Choose one answer from the four options below.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {currentQuestion.answers.map((answer, index) => {
-              const optionLabel = String.fromCharCode(65 + index);
-              const showCorrect = isAnswered && answer === currentQuestion.correctAnswer;
-              const showIncorrect = isAnswered && answer === currentAnswer && answer !== currentQuestion.correctAnswer;
-
-              return (
-                <button
-                  key={answer}
-                  type="button"
-                  disabled={isAnswered}
-                  onClick={() => setSelectedAnswer(answer)}
-                  className={`flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition ${
-                    showCorrect
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : showIncorrect
-                        ? 'border-destructive bg-destructive/10'
-                        : selectedAnswer === answer
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50 hover:bg-muted/60'
-                  }`}
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background text-sm font-semibold">
-                    {optionLabel}
-                  </div>
-                  <div
-                    className={`flex-1 pt-1 text-sm md:text-base ${
-                      selectedAnswer === answer || showCorrect || showIncorrect
-                        ? 'font-semibold'
-                        : 'font-medium'
-                    }`}
-                  >
-                    {answer}
-                  </div>
-                  {showCorrect && <CheckCircle2 className="mt-1 h-5 w-5 text-emerald-600" />}
-                  {showIncorrect && <XCircle className="mt-1 h-5 w-5 text-destructive" />}
-                </button>
-              );
-            })}
-          </div>
-
-          {isAnswered && (
-            <div className={`rounded-2xl border p-4 ${isCorrect ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-destructive/40 bg-destructive/10'}`}>
-              <div className="flex items-start gap-3">
-                {isCorrect ? (
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
-                ) : (
-                  <XCircle className="mt-0.5 h-5 w-5 text-destructive" />
-                )}
-                <div className="space-y-1">
-                  <p className="font-medium">
-                    {isCorrect ? 'Correct answer.' : `Not quite. The correct answer is ${currentQuestion.correctAnswer}.`}
-                  </p>
-                  {currentQuestion.explanation && (
-                    <p className="text-sm text-muted-foreground">{currentQuestion.explanation}</p>
-                  )}
+        {current.type.includes('flashcard') && (
+          <div className="flex-1 flex items-center justify-center">
+            <div
+              className={`w-full max-w-md h-64 perspective-1000 cursor-pointer`}
+              onClick={handleFlip}
+            >
+              <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${flipped ? 'rotate-y-180' : ''}`}>
+                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center p-6 shadow-lg">
+                  <p className="text-lg font-medium text-center">Front (question)</p>
+                </div>
+                <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-green-50 to-teal-50 rounded-xl flex items-center justify-center p-6 shadow-lg">
+                  <p className="text-lg font-medium text-center">{current.answer}</p>
                 </div>
               </div>
             </div>
-          )}
-
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
-            <div className="text-sm text-muted-foreground">
-              Score: {score} / {questions.length}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" onClick={handlePrevious} disabled={currentIndex === 0}>
-                Previous
-              </Button>
-              {!isAnswered ? (
-                <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>
-                  Submit answer
-                </Button>
-              ) : currentIndex < questions.length - 1 ? (
-                <Button onClick={handleNext}>Next question</Button>
-              ) : (
-                <Button onClick={handleRestart}>
-                  <RotateCcw className="h-4 w-4" />
-                  Restart quiz
-                </Button>
-              )}
-            </div>
           </div>
-        </div>
+        )}
+
+        {current.type === 'multiple_choice' && current.options && (
+          <div className="space-y-4 flex-1">
+            {current.options.map((opt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleMCQSelect(opt)}
+                disabled={!!feedback}
+                className={`w-full p-4 text-left border rounded-lg transition ${
+                  feedback
+                    ? opt === current.answer
+                      ? 'bg-green-100 border-green-500'
+                      : opt === userAnswer
+                      ? 'bg-red-100 border-red-500'
+                      : ''
+                    : 'hover:bg-muted'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+            {feedback && (
+              <div className="mt-4 text-center flex items-center justify-center gap-2">
+                {feedback === 'correct' ? (
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                ) : (
+                  <XCircle className="h-6 w-6 text-red-600" />
+                )}
+                <span className={feedback === 'correct' ? 'text-green-600' : 'text-red-600'}>
+                  {feedback === 'correct' ? 'Correct!' : `Incorrect. Answer: ${current.answer}`}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Add handling for true_false, fill_blank similarly */}
       </div>
 
-      {isFinished && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
-          <div className="flex items-start gap-3">
-            <Trophy className="mt-0.5 h-5 w-5 text-primary" />
-            <div>
-              <h2 className="font-semibold">Quiz complete</h2>
-              <p className="text-sm text-muted-foreground">
-                You answered {score} out of {questions.length} correctly.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="flex justify-between">
+        <button
+          onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
+          disabled={currentIndex === 0}
+          className="btn-secondary disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          onClick={nextQuestion}
+          disabled={currentIndex >= questions.length - 1}
+          className="btn-primary disabled:opacity-50 flex items-center gap-2"
+        >
+          Next <RotateCw className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
