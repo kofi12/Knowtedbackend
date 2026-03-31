@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Brain, Calendar, ClipboardList, FileText, Upload, Pencil, Trash2, Loader2, Library, ShieldAlert } from 'lucide-react';
 import { Material } from '../lib/mockData';
 import { useCourses } from '../lib/CoursesContext';
