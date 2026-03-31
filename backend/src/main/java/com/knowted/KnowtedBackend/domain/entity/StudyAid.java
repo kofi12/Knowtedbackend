@@ -44,8 +44,7 @@ public class StudyAid {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    protected StudyAid() {
-    }
+    protected StudyAid() {}
 
     // factory method to create a new study aid for flashcard generation
     public static StudyAid create(UUID userId, Course course, UUID documentId, short typeId, String title) {
