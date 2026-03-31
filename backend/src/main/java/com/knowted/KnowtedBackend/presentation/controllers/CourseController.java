@@ -6,6 +6,7 @@ import com.knowted.KnowtedBackend.infrastructure.persistence.JPACourseDocumentRe
 import com.knowted.KnowtedBackend.presentation.dto.CourseDto;
 import com.knowted.KnowtedBackend.presentation.dto.CreateCourseRequest;
 import com.knowted.KnowtedBackend.presentation.dto.UpdateCourseRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +47,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/api/courses/{courseId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@RequestParam UUID userId, @PathVariable UUID courseId) {
         courseUseCase.deleteCourse(userId, courseId);
     }

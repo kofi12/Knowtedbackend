@@ -33,3 +33,7 @@ openai:
   api:
     key: test-dummy-key
   model: gpt-4o-mini
+
+# Uppercase env-var style keys used by @Value("${OPENAI_API_KEY}") in FlashcardUseCase
+OPENAI_API_KEY: test-dummy-key
+OPENAI_MODEL: gpt-4o-mini
