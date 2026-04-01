@@ -488,8 +488,8 @@ export function CourseDetail() {
             <h1 className="text-2xl md:text-3xl font-bold mb-2">{course.name}</h1>
             <div className="flex flex-wrap gap-3 md:gap-6 text-xs md:text-sm text-muted-foreground">
               <span>{course.semester} {course.year}</span>
-              <span>{course.materialsCount} materials</span>
-              <span>{course.aidsCount} study aids</span>
+              <span>{courseMaterials.length} materials</span>
+              <span>{flashcardDecks.length + quizzesMCQ.length + quizzesMulti.length} study aids</span>
               <span className="hidden sm:inline">Updated {course.lastUpdated}</span>
             </div>
           </div>
